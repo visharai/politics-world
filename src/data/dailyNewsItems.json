@@ -1,0 +1,97 @@
+[
+  {
+    "id": "item-1",
+    "title": "The New Delhi Diplomatic Summit: Multi-Nation Trade Corridor Finalizes Historic Maritime Freight Accord",
+    "deck": "Global delegations conclude marathon negotiations in New Delhi, establishing an automated green logistics corridor connecting India, the Arabian Gulf, and European economic hubs.",
+    "category": "Global Summits",
+    "author": "Rajesh K. Verma & Eleanor Vance",
+    "authorRole": "Chief Diplomatic Editor",
+    "readTime": "6 min read",
+    "sourceAgency": "Reuters",
+    "sourceCountry": "United Kingdom (UK)",
+    "image": "/src/assets/images/india_parliament_news_1792118846447.jpg",
+    "caption": "Delegation leaders and trade ministers finalize the multilateral economic corridor pact in New Delhi.",
+    "tags": ["India", "Trade Corridor", "Gulf Envoys", "European Union", "Reuters"],
+    "keyTakeaways": [
+      "Reduces container transit dwell time between the Indian Ocean and Mediterranean ports by 38%.",
+      "Unified customs harmonization treaty agreed upon with automated digital verification.",
+      "Infrastructure allocations prioritized for high-capacity rail lines and smart port terminals."
+    ]
+  },
+  {
+    "id": "item-2",
+    "title": "Bipartisan Senate Accord Finalizes $190B Critical Infrastructure & Microchip Supply Pact",
+    "deck": "Congressional committee chairs break weeks of deadlock, authorizing domestic lithography cleanrooms and sovereign energy grid hardening with overwhelming bicameral backing.",
+    "category": "White House & Congress",
+    "author": "Marcus Sterling",
+    "authorRole": "Chief Congressional Correspondent",
+    "readTime": "7 min read",
+    "sourceAgency": "Associated Press (AP)",
+    "sourceCountry": "United States (USA)",
+    "image": "/src/assets/images/capitol_night_session_1791859431318.jpg",
+    "caption": "Capitol dome illuminated late into the night as the legislative compromise cleared key procedural hurdles.",
+    "tags": ["US Senate", "Bipartisan Pact", "Infrastructure", "Semiconductors", "AP"],
+    "keyTakeaways": [
+      "Expedited cloture vote scheduled with statutory guarantees for domestic manufacturing.",
+      "Mandates dedicated cleanroom fabrication capacity for defense and sovereign AI compute.",
+      "Tax credits conditioned upon strict allied sourcing of refined critical minerals."
+    ]
+  },
+  {
+    "id": "item-3",
+    "title": "The Geneva Compromise: Allied Ministers Forge Binding 10-Year Framework on Clean Tech Tariffs",
+    "deck": "Behind closed doors, economic directors narrowly averted a transatlantic trade dispute by agreeing to mutual recognition of origin standards for critical energy technologies.",
+    "category": "Economy & Trade",
+    "author": "Eleanor Vance",
+    "authorRole": "Senior European Bureau Editor",
+    "readTime": "8 min read",
+    "sourceAgency": "Euronews",
+    "sourceCountry": "France / European Union",
+    "image": "/src/assets/images/geneva_trade_summit_1792380631472.jpg",
+    "caption": "Negotiation tables in Geneva following the conclusion of the international clean energy tariff pact.",
+    "tags": ["Geneva Summit", "Clean Energy", "Tariff Accord", "Transatlantic Trade", "Euronews"],
+    "keyTakeaways": [
+      "Sets a 12% reciprocal tariff ceiling across lithium, rare earths, and solar components through 2032.",
+      "Establishes an automated dispute arbitration council resolving compliance inquiries within 45 days.",
+      "Nullifies over four hundred pending bilateral tariff disputes between allied trading partners."
+    ]
+  },
+  {
+    "id": "item-4",
+    "title": "Gulf Security Council Reaches Unanimous Joint Defense and Maritime Transit Guarantee",
+    "deck": "Regional leaders meeting in Riyadh unveil a comprehensive maritime security initiative ensuring uninterrupted commercial oil and LNG tankers throughout strategic straits.",
+    "category": "Geopolitics",
+    "author": "Tariq Al-Mansoor",
+    "authorRole": "Middle East Affairs Editor",
+    "readTime": "6 min read",
+    "sourceAgency": "Al Jazeera",
+    "sourceCountry": "Qatar",
+    "image": "/src/assets/images/gulf_summit_riyadh_1792380285437.jpg",
+    "caption": "Heads of state and security ministers assemble in Riyadh for the joint maritime stability declaration.",
+    "tags": ["Gulf Summit", "Riyadh", "Energy Security", "Maritime Defense", "Al Jazeera"],
+    "keyTakeaways": [
+      "Integrated radar surveillance and rapid-reaction naval escorts deployed across commercial channels.",
+      "Joint regional insurance underwriting pool established to lower commercial shipping premiums.",
+      "Direct diplomatic crisis hotline established between all regional maritime operational commands."
+    ]
+  },
+  {
+    "id": "item-5",
+    "title": "Global Semiconductor Foundry Expansion: Next-Generation EUV Lithography Centers Open",
+    "deck": "Massive capital investments come online as leading allied chipmakers activate sub-2nm cleanroom facilities, reshaping the geopolitical balance of computing power.",
+    "category": "Economy & Trade",
+    "author": "Hiroshi Tanaka",
+    "authorRole": "Global Technology Correspondent",
+    "readTime": "5 min read",
+    "sourceAgency": "Nikkei Asia",
+    "sourceCountry": "Japan",
+    "image": "/src/assets/images/semiconductor_cleanroom_1792002503650.jpg",
+    "caption": "Robotic automated wafer handling pods inside the newly certified high-precision semiconductor cleanroom.",
+    "tags": ["Semiconductors", "AI Hardware", "Technology Sovereignty", "Global Supply", "Nikkei Asia"],
+    "keyTakeaways": [
+      "Sub-2 nanometer wafer production initiated with initial deliveries slated for Q3.",
+      "Diversifies high-end fabrication outside concentrated geological seismic zones.",
+      "Allied semiconductor research alliance signs cooperative patent-pooling agreement."
+    ]
+  }
+]

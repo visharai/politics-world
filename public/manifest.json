@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "Politics World - Latest Political News",
+  "short_name": "Politics",
+  "description": "Real-time breaking political news, live dispatches, global policy updates, cricket scores, and multi-language podcasts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#060c1d",
+  "theme_color": "#060c1d",
+  "orientation": "any",
+  "categories": ["news", "politics", "magazines"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for hardened security
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() >= 5 && email.size() <= 150 && email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+    }
+
+    // Default Deny: All collections are private by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // News Articles & Investigative Dispatches
+    // Publicly readable so visitors and readers can view the journalism.
+    // Client write is disabled to prevent unauthorized modifications.
+    match /articles/{articleId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    // Interactive Polls & Aggregated Ballots
+    // Public read for live policy poll participation.
+    match /polls/{pollId} {
+      allow get, list: if true;
+      allow write: if false;
+    }
+
+    // Poll Votes: Readers can submit valid anonymous or signed votes.
+    // Cannot be altered or deleted once submitted.
+    match /poll_votes/{voteId} {
+      allow get, list: if true;
+      allow create: if isValidId(voteId)
+                    && incoming().keys().hasAll(['pollId', 'optionId', 'votedAt'])
+                    && incoming().keys().hasOnly(['pollId', 'optionId', 'votedAt'])
+                    && incoming().pollId is string && incoming().pollId.size() <= 64
+                    && incoming().optionId is string && incoming().optionId.size() <= 64
+                    && incoming().votedAt is string && incoming().votedAt.size() <= 40;
+      allow update, delete: if false;
+    }
+
+    // Newsletter Subscribers
+    // Readers can subscribe with their email address.
+    // Subscriber lists are private (no public read/list) to protect reader privacy.
+    match /newsletter_subscribers/{subscriberId} {
+      allow get, list: if false;
+      allow create: if isValidId(subscriberId)
+                    && incoming().keys().hasAll(['email', 'subscribedAt'])
+                    && incoming().keys().hasOnly(['email', 'subscribedAt', 'language', 'frequency'])
+                    && isValidEmail(incoming().email)
+                    && incoming().subscribedAt is string && incoming().subscribedAt.size() <= 40
+                    && (!('language' in incoming()) || (incoming().language is string && incoming().language.size() <= 10))
+                    && (!('frequency' in incoming()) || (incoming().frequency in ['daily', 'breaking', 'weekly']));
+      allow update, delete: if false;
+    }
+
+    // Reader Feedback & Fact-Check Dispatches
+    // Readers can submit tip-offs and editorial feedback. Submissions are strictly private.
+    match /feedback/{feedbackId} {
+      allow get, list: if false;
+      allow create: if isValidId(feedbackId)
+                    && incoming().keys().hasAll(['email', 'message', 'createdAt'])
+                    && incoming().keys().hasOnly(['email', 'message', 'createdAt', 'name', 'category'])
+                    && isValidEmail(incoming().email)
+                    && incoming().message is string && incoming().message.size() >= 1 && incoming().message.size() <= 5000
+                    && incoming().createdAt is string && incoming().createdAt.size() <= 40
+                    && (!('name' in incoming()) || (incoming().name is string && incoming().name.size() <= 100))
+                    && (!('category' in incoming()) || (incoming().category is string && incoming().category.size() <= 50));
+      allow update, delete: if false;
+    }
+
+    // User Profiles & Preferences
+    // Only the authenticated owner can access and manage their own document.
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list: if false;
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "entities": {
+    "newsletter_subscriber": {
+      "title": "Newsletter Subscriber",
+      "description": "Email subscription records for Politics World daily dispatches and breaking alerts",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Subscriber verified email address"
+        },
+        "subscribedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp when reader subscribed"
+        },
+        "language": {
+          "type": "string",
+          "description": "Selected edition language code (e.g., en, hi)"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["daily", "breaking", "weekly"],
+          "description": "Alert frequency preference"
+        }
+      },
+      "required": ["email", "subscribedAt"]
+    },
+    "poll_vote": {
+      "title": "Poll Vote",
+      "description": "Audited votes cast on interactive policy polls",
+      "type": "object",
+      "properties": {
+        "pollId": {
+          "type": "string",
+          "description": "Identifier of the poll"
+        },
+        "optionId": {
+          "type": "string",
+          "description": "Selected ballot option identifier"
+        },
+        "votedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of the vote event"
+        }
+      },
+      "required": ["pollId", "optionId", "votedAt"]
+    },
+    "article": {
+      "title": "News Article",
+      "description": "Editorial article or investigative report",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Headline of the article"
+        },
+        "category": {
+          "type": "string",
+          "description": "Editorial category"
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Publication timestamp"
+        },
+        "leadParagraph": {
+          "type": "string",
+          "description": "Lead paragraph"
+        }
+      },
+      "required": ["title", "category", "publishedAt"]
+    },
+    "user_feedback": {
+      "title": "Reader Feedback Dispatch",
+      "description": "Fact-check tips and editorial contact dispatches",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Reader name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Reader contact email address"
+        },
+        "message": {
+          "type": "string",
+          "description": "Message or tip details"
+        },
+        "category": {
+          "type": "string",
+          "description": "Inquiry topic"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Submission timestamp"
+        }
+      },
+      "required": ["email", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/newsletter_subscribers/{subscriberId}": {
+      "schema": "newsletter_subscriber",
+      "description": "Verified email newsletter subscribers"
+    },
+    "/poll_votes/{voteId}": {
+      "schema": "poll_vote",
+      "description": "Interactive poll ballots and tallies"
+    },
+    "/articles/{articleId}": {
+      "schema": "article",
+      "description": "Published news articles and analyses"
+    },
+    "/feedback/{feedbackId}": {
+      "schema": "user_feedback",
+      "description": "Reader inquiries and editorial fact-check tips"
+    }
+  }
+}

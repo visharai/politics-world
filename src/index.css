@@ -1,0 +1,753 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --breakpoint-xs: 400px;
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body,
+#root {
+  font-family: var(--font-sans);
+  background-color: #060c1d;
+  color: #f1f5f9;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: clip;
+  max-width: 100%;
+  width: 100%;
+}
+
+body.light,
+[data-theme="light"] body,
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+body.dark,
+[data-theme="dark"] body,
+html.dark body {
+  background-color: #060c1d !important;
+  color: #f1f5f9 !important;
+}
+
+h1, h2, .font-editorial {
+  font-family: var(--font-serif);
+}
+
+/* Hide scrollbars cleanly for mobile/tablet horizontal nav & category strips */
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b152d;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2f5b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track,
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb,
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+/* ==========================================================================
+   BRIGHT / LIGHT MODE COMPREHENSIVE OVERRIDES
+   ========================================================================== */
+
+[data-theme="light"],
+.light {
+  color-scheme: light;
+}
+
+/* 1. Canvas & Top-Level Page Wrapper Overrides */
+[data-theme="light"] header,
+.light header,
+[data-theme="light"] nav,
+.light nav,
+[data-theme="light"] .bg-\[\#030611\],
+.light .bg-\[\#030611\],
+[data-theme="light"] .bg-\[\#030612\],
+.light .bg-\[\#030612\],
+[data-theme="light"] .bg-\[\#040813\],
+.light .bg-\[\#040813\],
+[data-theme="light"] .bg-\[\#040814\],
+.light .bg-\[\#040814\],
+[data-theme="light"] .bg-\[\#040816\],
+.light .bg-\[\#040816\],
+[data-theme="light"] .bg-\[\#050a18\],
+.light .bg-\[\#050a18\],
+[data-theme="light"] .bg-\[\#050a19\],
+.light .bg-\[\#050a19\],
+[data-theme="light"] .bg-\[\#050a1b\],
+.light .bg-\[\#050a1b\],
+[data-theme="light"] .bg-\[\#050a1c\],
+.light .bg-\[\#050a1c\],
+[data-theme="light"] .bg-\[\#050b1a\],
+.light .bg-\[\#050b1a\],
+[data-theme="light"] .bg-\[\#050b1d\],
+.light .bg-\[\#050b1d\],
+[data-theme="light"] .bg-\[\#050c20\],
+.light .bg-\[\#050c20\],
+[data-theme="light"] .bg-\[\#060c1d\],
+.light .bg-\[\#060c1d\],
+[data-theme="light"] .bg-\[\#060c1f\],
+.light .bg-\[\#060c1f\],
+[data-theme="light"] .bg-\[\#060d21\],
+.light .bg-\[\#060d21\],
+[data-theme="light"] .bg-\[\#060e22\],
+.light .bg-\[\#060e22\],
+[data-theme="light"] .bg-\[\#060e24\],
+.light .bg-\[\#060e24\] {
+  background-color: #ffffff !important;
+}
+
+/* 2. Header, Masthead & Nav Bar Overrides */
+[data-theme="light"] header,
+.light header,
+[data-theme="light"] .bg-\[\#070e22\],
+.light .bg-\[\#070e22\],
+[data-theme="light"] .bg-\[\#070e24\],
+.light .bg-\[\#070e24\],
+[data-theme="light"] .bg-\[\#070f24\],
+.light .bg-\[\#070f24\],
+[data-theme="light"] .bg-\[\#071126\],
+.light .bg-\[\#071126\],
+[data-theme="light"] .bg-\[\#071128\],
+.light .bg-\[\#071128\] {
+  background-color: #ffffff !important;
+}
+
+/* 3. Cards, Articles & Main Surface Overrides */
+[data-theme="light"] article,
+.light article,
+[data-theme="light"] .bg-\[\#081128\],
+.light .bg-\[\#081128\],
+[data-theme="light"] .bg-\[\#081129\],
+.light .bg-\[\#081129\],
+[data-theme="light"] .bg-\[\#081229\],
+.light .bg-\[\#081229\],
+[data-theme="light"] .bg-\[\#08122a\],
+.light .bg-\[\#08122a\],
+[data-theme="light"] .bg-\[\#08122c\],
+.light .bg-\[\#08122c\],
+[data-theme="light"] .bg-\[\#08122d\],
+.light .bg-\[\#08122d\],
+[data-theme="light"] .bg-\[\#08132e\],
+.light .bg-\[\#08132e\],
+[data-theme="light"] .bg-\[\#081636\],
+.light .bg-\[\#081636\],
+[data-theme="light"] .bg-\[\#09132c\],
+.light .bg-\[\#09132c\],
+[data-theme="light"] .bg-\[\#09132d\],
+.light .bg-\[\#09132d\],
+[data-theme="light"] .bg-\[\#09142e\],
+.light .bg-\[\#09142e\],
+[data-theme="light"] .bg-\[\#09142f\],
+.light .bg-\[\#09142f\],
+[data-theme="light"] .bg-\[\#091430\],
+.light .bg-\[\#091430\],
+[data-theme="light"] .bg-\[\#0a132c\],
+.light .bg-\[\#0a132c\],
+[data-theme="light"] .bg-\[\#0a142e\],
+.light .bg-\[\#0a142e\],
+[data-theme="light"] .bg-\[\#0a1532\],
+.light .bg-\[\#0a1532\],
+[data-theme="light"] .bg-\[\#0a1534\],
+.light .bg-\[\#0a1534\],
+[data-theme="light"] .bg-\[\#0a1636\],
+.light .bg-\[\#0a1636\],
+[data-theme="light"] .bg-\[\#0a1637\],
+.light .bg-\[\#0a1637\],
+[data-theme="light"] .bg-\[\#0a1638\],
+.light .bg-\[\#0a1638\],
+[data-theme="light"] .bg-\[\#0a1738\],
+.light .bg-\[\#0a1738\],
+[data-theme="light"] .bg-\[\#0a232c\],
+.light .bg-\[\#0a232c\] {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
+
+/* 4. Wells, Insets, Secondary Panels, Audio Boxes & Table Cells */
+[data-theme="light"] .bg-\[\#091533\],
+.light .bg-\[\#091533\],
+[data-theme="light"] .bg-\[\#091534\],
+.light .bg-\[\#091534\],
+[data-theme="light"] .bg-\[\#091636\],
+.light .bg-\[\#091636\],
+[data-theme="light"] .bg-\[\#091738\],
+.light .bg-\[\#091738\],
+[data-theme="light"] .bg-\[\#0b142e\],
+.light .bg-\[\#0b142e\],
+[data-theme="light"] .bg-\[\#0b1633\],
+.light .bg-\[\#0b1633\],
+[data-theme="light"] .bg-\[\#0b1636\],
+.light .bg-\[\#0b1636\],
+[data-theme="light"] .bg-\[\#0b1735\],
+.light .bg-\[\#0b1735\],
+[data-theme="light"] .bg-\[\#0b1836\],
+.light .bg-\[\#0b1836\],
+[data-theme="light"] .bg-\[\#0b193d\],
+.light .bg-\[\#0b193d\],
+[data-theme="light"] .bg-\[\#0c1836\],
+.light .bg-\[\#0c1836\],
+[data-theme="light"] .bg-\[\#0c1938\],
+.light .bg-\[\#0c1938\],
+[data-theme="light"] .bg-\[\#0c1a3b\],
+.light .bg-\[\#0c1a3b\],
+[data-theme="light"] .bg-\[\#0c1a3d\],
+.light .bg-\[\#0c1a3d\],
+[data-theme="light"] .bg-\[\#0d1838\],
+.light .bg-\[\#0d1838\],
+[data-theme="light"] .bg-\[\#0d1b3e\],
+.light .bg-\[\#0d1b3e\],
+[data-theme="light"] .bg-\[\#0d1c42\],
+.light .bg-\[\#0d1c42\],
+[data-theme="light"] .bg-\[\#0e1a38\],
+.light .bg-\[\#0e1a38\],
+[data-theme="light"] .bg-\[\#0e1c3f\],
+.light .bg-\[\#0e1c3f\],
+[data-theme="light"] .bg-\[\#0e1d42\],
+.light .bg-\[\#0e1d42\],
+[data-theme="light"] .bg-\[\#0e214d\],
+.light .bg-\[\#0e214d\],
+[data-theme="light"] .bg-\[\#0f1d3f\],
+.light .bg-\[\#0f1d3f\],
+[data-theme="light"] .bg-\[\#0f1f45\],
+.light .bg-\[\#0f1f45\],
+[data-theme="light"] .bg-\[\#0f1f47\],
+.light .bg-\[\#0f1f47\],
+[data-theme="light"] .bg-\[\#102047\],
+.light .bg-\[\#102047\],
+[data-theme="light"] .bg-\[\#10234f\],
+.light .bg-\[\#10234f\],
+[data-theme="light"] .bg-\[\#102454\],
+.light .bg-\[\#102454\],
+[data-theme="light"] .bg-\[\#112046\],
+.light .bg-\[\#112046\],
+[data-theme="light"] .bg-\[\#11214a\],
+.light .bg-\[\#11214a\],
+[data-theme="light"] .bg-\[\#112457\],
+.light .bg-\[\#112457\],
+[data-theme="light"] .bg-\[\#113a48\],
+.light .bg-\[\#113a48\],
+[data-theme="light"] .bg-\[\#121f42\],
+.light .bg-\[\#121f42\],
+[data-theme="light"] .bg-\[\#122247\],
+.light .bg-\[\#122247\],
+[data-theme="light"] .bg-\[\#12234e\],
+.light .bg-\[\#12234e\],
+[data-theme="light"] .bg-\[\#122452\],
+.light .bg-\[\#122452\],
+[data-theme="light"] .bg-\[\#13234d\],
+.light .bg-\[\#13234d\],
+[data-theme="light"] .bg-\[\#142347\],
+.light .bg-\[\#142347\],
+[data-theme="light"] .bg-\[\#14234b\],
+.light .bg-\[\#14234b\],
+[data-theme="light"] .bg-\[\#152a5c\],
+.light .bg-\[\#152a5c\],
+[data-theme="light"] .bg-\[\#162e66\],
+.light .bg-\[\#162e66\],
+[data-theme="light"] .bg-\[\#180f24\],
+.light .bg-\[\#180f24\],
+[data-theme="light"] .bg-\[\#182f64\],
+.light .bg-\[\#182f64\],
+[data-theme="light"] .bg-\[\#192b52\],
+.light .bg-\[\#192b52\],
+[data-theme="light"] .bg-\[\#1a3370\],
+.light .bg-\[\#1a3370\],
+[data-theme="light"] .bg-\[\#1d3570\],
+.light .bg-\[\#1d3570\],
+[data-theme="light"] .bg-\[\#0b1736\],
+.light .bg-\[\#0b1736\],
+[data-theme="light"] .bg-\[\#0d1a38\],
+.light .bg-\[\#0d1a38\],
+[data-theme="light"] .bg-\[\#0d1a3a\],
+.light .bg-\[\#0d1a3a\],
+[data-theme="light"] .bg-\[\#0e1b3d\],
+.light .bg-\[\#0e1b3d\],
+[data-theme="light"] .bg-\[\#0e1d40\],
+.light .bg-\[\#0e1d40\],
+[data-theme="light"] .bg-\[\#0e1d44\],
+.light .bg-\[\#0e1d44\],
+[data-theme="light"] .bg-\[\#0f1d3e\],
+.light .bg-\[\#0f1d3e\],
+[data-theme="light"] .bg-\[\#0f214d\],
+.light .bg-\[\#0f214d\],
+[data-theme="light"] .bg-\[\#102046\],
+.light .bg-\[\#102046\],
+[data-theme="light"] .bg-\[\#112250\],
+.light .bg-\[\#112250\],
+[data-theme="light"] .bg-\[\#12244f\],
+.light .bg-\[\#12244f\],
+[data-theme="light"] .bg-\[\#122450\],
+.light .bg-\[\#122450\],
+[data-theme="light"] .bg-\[\#142654\],
+.light .bg-\[\#142654\],
+[data-theme="light"] .bg-\[\#17306e\],
+.light .bg-\[\#17306e\] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Semi-transparent Backdrop Overrides */
+[data-theme="light"] .bg-\[\#070e24\]\/95,
+.light .bg-\[\#070e24\]\/95,
+[data-theme="light"] .bg-\[\#070f24\]\/95,
+.light .bg-\[\#070f24\]\/95,
+[data-theme="light"] .bg-\[\#050b1a\]\/80,
+.light .bg-\[\#050b1a\]\/80,
+[data-theme="light"] .bg-\[\#0a1532\]\/95,
+.light .bg-\[\#0a1532\]\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Active Segmented Control Tabs */
+[data-theme="light"] .bg-\[\#152752\],
+.light .bg-\[\#152752\],
+[data-theme="light"] .bg-\[\#162752\],
+.light .bg-\[\#162752\] {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* 5. Comprehensive Border Overrides */
+[data-theme="light"] .border-\[\#101c38\],
+.light .border-\[\#101c38\],
+[data-theme="light"] .border-\[\#111e3d\],
+.light .border-\[\#111e3d\],
+[data-theme="light"] .border-\[\#121f3f\],
+.light .border-\[\#121f3f\],
+[data-theme="light"] .border-\[\#122040\],
+.light .border-\[\#122040\],
+[data-theme="light"] .border-\[\#122042\],
+.light .border-\[\#122042\],
+[data-theme="light"] .border-\[\#122144\],
+.light .border-\[\#122144\],
+[data-theme="light"] .border-\[\#132145\],
+.light .border-\[\#132145\],
+[data-theme="light"] .border-\[\#132247\],
+.light .border-\[\#132247\],
+[data-theme="light"] .border-\[\#142347\],
+.light .border-\[\#142347\],
+[data-theme="light"] .border-\[\#152347\],
+.light .border-\[\#152347\],
+[data-theme="light"] .border-\[\#152348\],
+.light .border-\[\#152348\],
+[data-theme="light"] .border-\[\#152349\],
+.light .border-\[\#152349\],
+[data-theme="light"] .border-\[\#15244b\],
+.light .border-\[\#15244b\],
+[data-theme="light"] .border-\[\#15244e\],
+.light .border-\[\#15244e\],
+[data-theme="light"] .border-\[\#15254a\],
+.light .border-\[\#15254a\],
+[data-theme="light"] .border-\[\#16254a\],
+.light .border-\[\#16254a\],
+[data-theme="light"] .border-\[\#16264d\],
+.light .border-\[\#16264d\],
+[data-theme="light"] .border-\[\#16274e\],
+.light .border-\[\#16274e\],
+[data-theme="light"] .border-\[\#162752\],
+.light .border-\[\#162752\],
+[data-theme="light"] .border-\[\#162953\],
+.light .border-\[\#162953\],
+[data-theme="light"] .border-\[\#162955\],
+.light .border-\[\#162955\],
+[data-theme="light"] .border-\[\#17264d\],
+.light .border-\[\#17264d\],
+[data-theme="light"] .border-\[\#17274e\],
+.light .border-\[\#17274e\],
+[data-theme="light"] .border-\[\#172750\],
+.light .border-\[\#172750\],
+[data-theme="light"] .border-\[\#172b57\],
+.light .border-\[\#172b57\],
+[data-theme="light"] .border-\[\#172b59\],
+.light .border-\[\#172b59\],
+[data-theme="light"] .border-\[\#172b5c\],
+.light .border-\[\#172b5c\],
+[data-theme="light"] .border-\[\#18264d\],
+.light .border-\[\#18264d\],
+[data-theme="light"] .border-\[\#18274f\],
+.light .border-\[\#18274f\],
+[data-theme="light"] .border-\[\#182850\],
+.light .border-\[\#182850\],
+[data-theme="light"] .border-\[\#182852\],
+.light .border-\[\#182852\],
+[data-theme="light"] .border-\[\#182952\],
+.light .border-\[\#182952\],
+[data-theme="light"] .border-\[\#182a55\],
+.light .border-\[\#182a55\],
+[data-theme="light"] .border-\[\#182c59\],
+.light .border-\[\#182c59\],
+[data-theme="light"] .border-\[\#182d5a\],
+.light .border-\[\#182d5a\],
+[data-theme="light"] .border-\[\#182e60\],
+.light .border-\[\#182e60\],
+[data-theme="light"] .border-\[\#182f63\],
+.light .border-\[\#182f63\],
+[data-theme="light"] .border-\[\#192b57\],
+.light .border-\[\#192b57\],
+[data-theme="light"] .border-\[\#192c57\],
+.light .border-\[\#192c57\],
+[data-theme="light"] .border-\[\#192e5c\],
+.light .border-\[\#192e5c\],
+[data-theme="light"] .border-\[\#193064\],
+.light .border-\[\#193064\],
+[data-theme="light"] .border-\[\#1a2b55\],
+.light .border-\[\#1a2b55\],
+[data-theme="light"] .border-\[\#1a2c58\],
+.light .border-\[\#1a2c58\],
+[data-theme="light"] .border-\[\#1a2c5a\],
+.light .border-\[\#1a2c5a\],
+[data-theme="light"] .border-\[\#1a2d58\],
+.light .border-\[\#1a2d58\],
+[data-theme="light"] .border-\[\#1a2d59\],
+.light .border-\[\#1a2d59\],
+[data-theme="light"] .border-\[\#1a2d5c\],
+.light .border-\[\#1a2d5c\],
+[data-theme="light"] .border-\[\#1a2f5e\],
+.light .border-\[\#1a2f5e\],
+[data-theme="light"] .border-\[\#1a3166\],
+.light .border-\[\#1a3166\],
+[data-theme="light"] .border-\[\#1a3369\],
+.light .border-\[\#1a3369\],
+[data-theme="light"] .border-\[\#1b2b52\],
+.light .border-\[\#1b2b52\],
+[data-theme="light"] .border-\[\#1b2b54\],
+.light .border-\[\#1b2b54\],
+[data-theme="light"] .border-\[\#1b2b57\],
+.light .border-\[\#1b2b57\],
+[data-theme="light"] .border-\[\#1b2d58\],
+.light .border-\[\#1b2d58\],
+[data-theme="light"] .border-\[\#1b2f5c\],
+.light .border-\[\#1b2f5c\],
+[data-theme="light"] .border-\[\#1b2f5d\],
+.light .border-\[\#1b2f5d\],
+[data-theme="light"] .border-\[\#1b2f5f\],
+.light .border-\[\#1b2f5f\],
+[data-theme="light"] .border-\[\#1b2f60\],
+.light .border-\[\#1b2f60\],
+[data-theme="light"] .border-\[\#1b3164\],
+.light .border-\[\#1b3164\],
+[data-theme="light"] .border-\[\#1b3469\],
+.light .border-\[\#1b3469\],
+[data-theme="light"] .border-\[\#1b3470\],
+.light .border-\[\#1b3470\],
+[data-theme="light"] .border-\[\#1c2e5c\],
+.light .border-\[\#1c2e5c\],
+[data-theme="light"] .border-\[\#1c305e\],
+.light .border-\[\#1c305e\],
+[data-theme="light"] .border-\[\#1d3161\],
+.light .border-\[\#1d3161\],
+[data-theme="light"] .border-\[\#1d3260\],
+.light .border-\[\#1d3260\],
+[data-theme="light"] .border-\[\#1d3264\],
+.light .border-\[\#1d3264\],
+[data-theme="light"] .border-\[\#1d3368\],
+.light .border-\[\#1d3368\],
+[data-theme="light"] .border-\[\#1d356c\],
+.light .border-\[\#1d356c\],
+[data-theme="light"] .border-\[\#1d3570\],
+.light .border-\[\#1d3570\],
+[data-theme="light"] .border-\[\#1d366e\],
+.light .border-\[\#1d366e\],
+[data-theme="light"] .border-\[\#1e3364\],
+.light .border-\[\#1e3364\],
+[data-theme="light"] .border-\[\#1e3466\],
+.light .border-\[\#1e3466\],
+[data-theme="light"] .border-\[\#1f3160\],
+.light .border-\[\#1f3160\],
+[data-theme="light"] .border-\[\#1f3463\],
+.light .border-\[\#1f3463\],
+[data-theme="light"] .border-\[\#162750\],
+.light .border-\[\#162750\],
+[data-theme="light"] .border-\[\#17264d\],
+.light .border-\[\#17264d\],
+[data-theme="light"] .border-\[\#18274f\],
+.light .border-\[\#18274f\],
+[data-theme="light"] .border-\[\#182852\],
+.light .border-\[\#182852\],
+[data-theme="light"] .border-\[\#22396d\],
+.light .border-\[\#22396d\],
+[data-theme="light"] .border-\[\#22396e\],
+.light .border-\[\#22396e\],
+[data-theme="light"] .border-\[\#223a73\],
+.light .border-\[\#223a73\],
+[data-theme="light"] .border-\[\#274082\],
+.light .border-\[\#274082\],
+[data-theme="light"] [class*="border-\[\#1"],
+.light [class*="border-\[\#1"],
+[data-theme="light"] [class*="border-\[\#0"],
+.light [class*="border-\[\#0"],
+[data-theme="light"] [class*="border-\[\#2"],
+.light [class*="border-\[\#2"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* 6. Typography & Contrast System in Bright Mode */
+[data-theme="light"] h1,
+.light h1,
+[data-theme="light"] h2,
+.light h2,
+[data-theme="light"] h3,
+.light h3,
+[data-theme="light"] h4,
+.light h4,
+[data-theme="light"] h5,
+.light h5,
+[data-theme="light"] h6,
+.light h6,
+[data-theme="light"] .brand-title,
+.light .brand-title {
+  color: #090e1a !important;
+  -webkit-text-fill-color: #090e1a !important;
+}
+
+[data-theme="light"] a:hover .brand-title,
+.light a:hover .brand-title {
+  color: #b45309 !important;
+  -webkit-text-fill-color: #b45309 !important;
+}
+
+[data-theme="light"] .brand-motto,
+.light .brand-motto {
+  color: #92400e !important;
+}
+
+/* Reader Typography */
+[data-theme="light"] .text-slate-100,
+.light .text-slate-100,
+[data-theme="light"] .text-slate-200,
+.light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-300,
+.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-slate-400,
+.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .text-slate-500,
+.light .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Ensure text-white converts to dark text ONLY when not inside a colored button/badge */
+[data-theme="light"] p.text-white,
+.light p.text-white,
+[data-theme="light"] span.text-white:not([class*="bg-"]):not([class*="badge"]),
+.light span.text-white:not([class*="bg-"]):not([class*="badge"]),
+[data-theme="light"] div.text-white:not([class*="bg-"]),
+.light div.text-white:not([class*="bg-"]) {
+  color: #090e1a !important;
+}
+
+/* Keep text white on primary action buttons and colored social badges */
+[data-theme="light"] .bg-sky-600,
+.light .bg-sky-600,
+[data-theme="light"] .bg-rose-600,
+.light .bg-rose-600,
+[data-theme="light"] .bg-rose-500,
+.light .bg-rose-500,
+[data-theme="light"] .bg-emerald-600,
+.light .bg-emerald-600,
+[data-theme="light"] .bg-\[\#25D366\],
+.light .bg-\[\#25D366\],
+[data-theme="light"] .bg-\[\#1877F2\],
+.light .bg-\[\#1877F2\],
+[data-theme="light"] .bg-\[\#0077b5\],
+.light .bg-\[\#0077b5\],
+[data-theme="light"] .bg-\[\#229ED9\],
+.light .bg-\[\#229ED9\],
+[data-theme="light"] .bg-\[\#FF4500\],
+.light .bg-\[\#FF4500\] {
+  color: #ffffff !important;
+}
+
+/* Blue & Amber Accents in Light Mode */
+[data-theme="light"] .text-sky-400,
+.light .text-sky-400 {
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .text-sky-300,
+.light .text-sky-300 {
+  color: #0369a1 !important;
+}
+
+[data-theme="light"] .text-amber-300,
+.light .text-amber-300,
+[data-theme="light"] .text-amber-400,
+.light .text-amber-400 {
+  color: #b45309 !important;
+}
+
+[data-theme="light"] .text-amber-200,
+.light .text-amber-200 {
+  color: #92400e !important;
+}
+
+/* Brand Crest (Rotating Green Globe) in Light Mode */
+[data-theme="light"] .brand-crest,
+.light .brand-crest {
+  border-color: #10b981 !important;
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25) !important;
+}
+
+[data-theme="light"] .brand-crest svg,
+.light .brand-crest svg {
+  color: #059669 !important;
+}
+
+/* 7. Forms, Inputs & Textareas */
+[data-theme="light"] input,
+.light input,
+[data-theme="light"] select,
+.light select,
+[data-theme="light"] textarea,
+.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+.light input::placeholder,
+[data-theme="light"] textarea::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 8. Modals, Drawers & Overlays */
+[data-theme="light"] .bg-black\/80,
+.light .bg-black\/80,
+[data-theme="light"] .bg-black\/60,
+.light .bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* Privacy Policy Gradient in Light Mode */
+[data-theme="light"] .from-\[\#0c1938\],
+.light .from-\[\#0c1938\] {
+  --tw-gradient-from: #f0f9ff var(--tw-gradient-from-position) !important;
+}
+
+[data-theme="light"] .via-\[\#09132d\],
+.light .via-\[\#09132d\] {
+  --tw-gradient-via: #ffffff var(--tw-gradient-via-position) !important;
+}
+
+[data-theme="light"] .to-\[\#070e22\],
+.light .to-\[\#070e22\] {
+  --tw-gradient-to: #fef3c7 var(--tw-gradient-to-position) !important;
+}
+
+/* Rotating Green Globe Crest */
+.animate-spin-globe {
+  animation: spinGlobe 12s linear infinite;
+  display: inline-block;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+@keyframes spinGlobe {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Photorealistic 3D Rotating Earth Animations (🌎 Continuous 360° Planetary Orbit) */
+.earth-continents-spinner {
+  animation: earthSpin 18s linear infinite;
+  will-change: transform;
+}
+
+.earth-clouds-spinner {
+  animation: earthClouds 26s linear infinite;
+  will-change: transform;
+}
+
+.earth-logo-container:hover .earth-continents-spinner {
+  animation-duration: 9s;
+}
+
+.earth-logo-container:hover .earth-clouds-spinner {
+  animation-duration: 13s;
+}
+
+@keyframes earthSpin {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes earthClouds {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tickerProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}

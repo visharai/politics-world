@@ -1,0 +1,58 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Crawl-delay: 1
+Sitemap: https://ais-pre-5ybfu37d43e2ycuf3t3ush-370038772633.asia-east1.run.app/sitemap.xml
+
+# Google Search & Google News
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Yahoo Search Crawler (Slurp)
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+# Microsoft Bing
+User-agent: Bingbot
+Allow: /
+
+# Opera Mini & Mobile Web Proxy Crawler
+User-agent: Opera
+Allow: /
+
+User-agent: Opera Mini
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Baidu & Yandex
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Social Crawlers for Rich Link Previews
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /

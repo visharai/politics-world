@@ -1,0 +1,6 @@
+{
+  "name": "Politics World",
+  "description": "Stay informed with Politics World — delivering real-time breaking political news, live dispatches, congressional analyses, global policy updates, and multi-language podcasts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
