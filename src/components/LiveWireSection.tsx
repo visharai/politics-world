@@ -25,9 +25,12 @@ import { podcastAudioEngine, TranscriptLine } from '../utils/podcastAudio';
 import { gnewsService } from '../services/gnewsService';
 import { translationService } from '../services/translationService';
 import { translateText as universalTranslateText } from '../utils/universalTranslator';
+import { LiveAdSlotBanner } from './LiveAdSlotBanner';
+import { AdSlotKey } from '../data/adSlotsConfig';
 
 interface LiveWireSectionProps {
   onOpenArticle: (article: Article) => void;
+  onBookSlot?: (slotKey: AdSlotKey) => void;
 }
 
 const GNEWS_TOPIC_CATEGORIES = [
@@ -41,6 +44,7 @@ const GNEWS_TOPIC_CATEGORIES = [
 
 export const LiveWireSection: React.FC<LiveWireSectionProps> = ({
   onOpenArticle,
+  onBookSlot,
 }) => {
   const { langCode } = useLanguage();
   const [wireItems, setWireItems] = useState<LiveWireItem[]>([]);
@@ -108,6 +112,12 @@ export const LiveWireSection: React.FC<LiveWireSectionProps> = ({
   };
 
   useEffect(() => {
+    void gnewsService.checkServerStatus().then(() => {
+      setGnewsStatus(gnewsService.getStatus());
+    });
+  }, []);
+
+  useEffect(() => {
     loadWire();
     setCountdownSeconds(30);
   }, [selectedCategory, searchQuery, langCode]);
@@ -166,8 +176,10 @@ export const LiveWireSection: React.FC<LiveWireSectionProps> = ({
   const handleClearApiKey = () => {
     gnewsService.setApiKey('');
     setInputApiKey('');
-    setGnewsStatus(gnewsService.getStatus());
-    setKeySavedStatus(langCode === 'hi' ? 'GNews API Key हटा दी गई।' : 'GNews API Key cleared.');
+    void gnewsService.checkServerStatus().then(() => {
+      setGnewsStatus(gnewsService.getStatus());
+    });
+    setKeySavedStatus(langCode === 'hi' ? 'लोकल की हटाई गई — सर्वर लाइव वायर सक्रिय है।' : 'Local key cleared — Server Live Wire remains active.');
     setTimeout(() => setKeySavedStatus(null), 3000);
     handleManualRefresh();
   };
@@ -558,6 +570,13 @@ export const LiveWireSection: React.FC<LiveWireSectionProps> = ({
           </div>
         )}
 
+        {/* Live Sponsored Wire Placement Slot */}
+        <LiveAdSlotBanner
+          slotKey="sponsored-wire"
+          variant="editorial"
+          onBookSlot={onBookSlot}
+          className="mt-10"
+        />
       </div>
     </section>
   );

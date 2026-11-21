@@ -195,14 +195,13 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({ onSelectBreaking
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3">
           {/* Ticker Lead Tag & Live Pulse Indicator */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-xs bg-amber-500/10 border border-amber-400/40 text-amber-300 text-[10px] font-bold uppercase tracking-wider font-serif">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-gradient-to-r from-amber-500/12 via-amber-400/8 to-amber-500/5 border border-amber-400/30 text-amber-200/95 text-[10px] sm:text-[11px] font-sans font-medium uppercase tracking-[0.16em] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-[pulse_3s_ease-in-out_infinite] absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
+                <span className="animate-[pulse_3s_ease-in-out_infinite] absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-60"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-300 shadow-[0_0_5px_rgba(252,211,77,0.55)]"></span>
               </span>
-              <Zap className="w-3 h-3 fill-amber-400 text-amber-400 opacity-90" />
-              <span className="hidden sm:inline">{t.breakingDispatch}</span>
-              <span className="inline sm:hidden font-black">{langCode === 'hi' ? 'ब्रेकिंग' : 'BREAKING'}</span>
+              <Zap className="w-2.5 h-2.5 fill-amber-300/85 text-amber-300/90" />
+              <span>{t.breakingDispatch}</span>
             </span>
 
             <span aria-hidden="true" className="text-slate-700 hidden sm:inline">|</span>
@@ -232,12 +231,6 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({ onSelectBreaking
               <span className="text-xs sm:text-sm font-semibold text-slate-100 group-hover:text-amber-200 group-hover:underline truncate transition-colors">
                 {currentItem.title}
               </span>
-
-              {currentItem.urgent && (
-                <span className="hidden lg:inline-flex items-center text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-rose-950/80 text-rose-300 border border-rose-700/50 tracking-wider shrink-0">
-                  URGENT
-                </span>
-              )}
             </button>
           </div>
 
@@ -285,9 +278,9 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({ onSelectBreaking
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping inline-block" />
-                NEW BREAKING DISPATCH
+              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-amber-300 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-ping inline-block" />
+                {langCode === 'hi' ? 'ताज़ा ब्रेकिंग' : 'NEW BREAKING'}
               </span>
               <button
                 onClick={() => setNewArrivalToast(null)}
@@ -373,11 +366,6 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({ onSelectBreaking
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {item.urgent && (
-                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/60">
-                            Urgent
-                          </span>
-                        )}
                         {isSelected && (
                           <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
                             Now Playing

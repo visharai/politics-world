@@ -4,6 +4,8 @@ import { podcastAudioEngine } from '../utils/podcastAudio';
 import { useLanguage } from '../context/LanguageContext';
 import { gnewsService } from '../services/gnewsService';
 import { liveNewsService } from '../services/liveNewsService';
+import { LiveAdSlotBanner } from './LiveAdSlotBanner';
+import { AdSlotKey } from '../data/adSlotsConfig';
 import {
   Play,
   Pause,
@@ -25,7 +27,11 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-export const PodcastSection: React.FC = () => {
+interface PodcastSectionProps {
+  onBookSlot?: (slotKey: AdSlotKey) => void;
+}
+
+export const PodcastSection: React.FC<PodcastSectionProps> = ({ onBookSlot }) => {
   const { t, langCode } = useLanguage();
   const [livePodcastEpisodes, setLivePodcastEpisodes] = useState<PodcastEpisode[]>([]);
   const [isRefreshingPodcasts, setIsRefreshingPodcasts] = useState(false);
@@ -831,6 +837,13 @@ export const PodcastSection: React.FC = () => {
           </div>
         </div>
 
+        {/* Live Multimedia Feature Placement Slot */}
+        <LiveAdSlotBanner
+          slotKey="multimedia-feature"
+          variant="editorial"
+          onBookSlot={onBookSlot}
+          className="mt-10"
+        />
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowLeft, Check, Download, ShoppingBag, Sparkles, BookOpen } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { downloadMagazineExcerptPdf } from '../utils/pdfExport';
 
 interface NotebookMagazineModalProps {
   isOpen: boolean;
@@ -52,6 +53,7 @@ export const NotebookMagazineModal: React.FC<NotebookMagazineModalProps> = ({
   };
 
   const handleDownloadSample = () => {
+    downloadMagazineExcerptPdf();
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 4000);
   };
@@ -175,7 +177,7 @@ export const NotebookMagazineModal: React.FC<NotebookMagazineModalProps> = ({
               {/* Price & Delivery Badge */}
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <span className="font-serif font-black text-xl text-amber-300">
-                  {langCode === 'hi' ? '₹1,999 / $25 USD' : '$25.00 USD / £20.00'}
+                  {langCode === 'hi' ? '₹1,999 (घरेलू संस्करण)' : '₹1,999 (INR Domestic)'}
                 </span>
                 <span className="px-2.5 py-1 rounded-xs bg-[#102354] text-slate-200 text-[11px] font-mono border border-[#213f8c]">
                   {langCode === 'hi' ? 'हार्डकवर प्रिंट + डिजिटल PDF संस्करण' : 'Archival Hardcover + Digital PDF'}
@@ -240,7 +242,7 @@ export const NotebookMagazineModal: React.FC<NotebookMagazineModalProps> = ({
         {/* Bottom Safety Strip with extra Close Button */}
         <div className="px-5 py-2.5 bg-[#040816] border-t border-[#16274e] flex items-center justify-between text-xs text-slate-400">
           <span className="text-[11px] font-mono">
-            Politics World Media Group · Global Syndication
+            Politics World Media Group · India Edition
           </span>
           <button
             onClick={onClose}

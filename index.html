@@ -29,18 +29,43 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Ensure React Refresh preamble globals & purge legacy static SW cache if present -->
+    <!-- Ensure React Refresh preamble globals & purge stale dev/legacy SW caches -->
     <script>
       (function() {
         try {
           if (typeof window !== 'undefined') {
             if (!window.$RefreshReg$) window.$RefreshReg$ = function() {};
             if (!window.$RefreshSig$) window.$RefreshSig$ = function() { return function(type) { return type; }; };
+
+            var isDevHost =
+              window.location.hostname.indexOf('ais-dev-') === 0 ||
+              window.location.hostname === 'localhost' ||
+              window.location.hostname === '127.0.0.1';
+
+            if (isDevHost && 'serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                var reloaded = false;
+                regs.forEach(function(reg) {
+                  var scriptUrl = (reg.active && reg.active.scriptURL) || (reg.waiting && reg.waiting.scriptURL) || '';
+                  if (scriptUrl.indexOf('dev-sw') !== -1 || scriptUrl.indexOf('/sw.js') !== -1) {
+                    reg.unregister().then(function(ok) {
+                      if (ok && !reloaded && !sessionStorage.getItem('pw_dev_sw_cleared')) {
+                        reloaded = true;
+                        sessionStorage.setItem('pw_dev_sw_cleared', '1');
+                        window.location.reload();
+                      }
+                    });
+                  }
+                });
+              });
+            }
           }
           if (typeof caches !== 'undefined') {
             caches.keys().then(function(keys) {
               keys.forEach(function(k) {
-                if (k.indexOf('politics-world-v') === 0) caches.delete(k);
+                if (k.indexOf('politics-world-v') === 0 || k.indexOf('workbox-precache') === 0) {
+                  caches.delete(k);
+                }
               });
             });
           }

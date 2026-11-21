@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Article } from '../data/newsData';
 import { useLanguage } from '../context/LanguageContext';
-import { X, Share2, Clock, Send, MessageSquare, Check, Volume2, Square, Headphones, Copy, ArrowLeft, Calendar, Building2, ExternalLink, Globe } from 'lucide-react';
+import { X, Share2, Clock, Send, MessageSquare, Check, Volume2, Square, Headphones, Copy, ArrowLeft, Calendar, Building2, ExternalLink, Globe, Smile } from 'lucide-react';
 import { podcastAudioEngine, TranscriptLine } from '../utils/podcastAudio';
 import { ShareModal } from './ShareModal';
 import { InArticleAdBanner } from './InArticleAdBanner';
@@ -49,8 +49,9 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
       likes: 8,
     },
   ]);
-  const [newCommentName, setNewCommentName] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const commentInputRef = useRef<HTMLInputElement>(null);
   const [isNarrating, setIsNarrating] = useState(false);
   const [enhancedArticle, setEnhancedArticle] = useState<Article | null>(null);
 
@@ -209,12 +210,33 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const QUICK_COMMENT_EMOJIS = ['👍', '👏', '🇮🇳', '🔥', '💡', '⚖️', '📰', '🤝', '🎯', '😮', '🤔', '💯', '❤️', '🙏'];
+  const EXTRA_COMMENT_EMOJIS = ['😄', '🙌', '🗣️', '📢', '🏛️', '🌍', '📊', '✅', '⚠️', '❓', '🚀', '⭐', '✊', '🕊️', '💼', '📌'];
+
+  const handleInsertEmoji = (emoji: string) => {
+    const input = commentInputRef.current;
+    if (input && typeof input.selectionStart === 'number' && typeof input.selectionEnd === 'number') {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const next = newCommentText.slice(0, start) + emoji + newCommentText.slice(end);
+      setNewCommentText(next);
+      requestAnimationFrame(() => {
+        input.focus();
+        const cursorPos = start + emoji.length;
+        input.setSelectionRange(cursorPos, cursorPos);
+      });
+    } else {
+      setNewCommentText((prev) => `${prev}${emoji}`);
+      commentInputRef.current?.focus();
+    }
+  };
+
   const handlePostComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCommentText.trim()) return;
     const item: Comment = {
       id: 'c-' + Date.now(),
-      author: newCommentName.trim() || 'Reader Member',
+      author: langCode === 'hi' ? 'पाठक सदस्य' : 'Reader Member',
       location: 'Verified Reader',
       text: newCommentText.trim(),
       timestamp: 'Just now',
@@ -222,6 +244,7 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
     };
     setComments([item, ...comments]);
     setNewCommentText('');
+    setShowEmojiPicker(false);
   };
 
   return (
@@ -464,30 +487,53 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {/* WhatsApp direct share */}
-              <button
-                onClick={() => {
-                  const shareUrl = `${window.location.origin}#${displayArticle.id}`;
-                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${displayArticle.title}*\n\n👉 ${shareUrl}`)}`, '_blank');
-                }}
-                className="px-2.5 py-1.5 rounded-xs bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${displayArticle.title}*\n\n👉 ${typeof window !== 'undefined' ? window.location.origin : ''}#${displayArticle.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 rounded-md bg-[#0b1530] hover:bg-[#13224a] border border-[#1c2f5e] hover:border-[#25D366]/60 text-slate-200 hover:text-white text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                 title="Share to WhatsApp"
               >
+                <svg className="w-3 h-3 fill-current text-[#25D366] shrink-0" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                </svg>
                 <span>WhatsApp</span>
-              </button>
+              </a>
+
+              {/* Instagram direct share (copies link + opens Instagram) */}
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  navigator.clipboard?.writeText(`${displayArticle.title}\n\n🔗 ${typeof window !== 'undefined' ? window.location.origin : ''}#${displayArticle.id}`);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="px-2 py-1 rounded-md bg-[#0b1530] hover:bg-[#13224a] border border-[#1c2f5e] hover:border-[#E4405F]/60 text-slate-200 hover:text-white text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                title="Copy link & open Instagram"
+              >
+                <svg className="w-3 h-3 fill-current text-[#E4405F] shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>Instagram</span>
+              </a>
 
               {/* X / Twitter direct share */}
-              <button
-                onClick={() => {
-                  const shareUrl = `${window.location.origin}#${displayArticle.id}`;
-                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(displayArticle.title)}&url=${encodeURIComponent(shareUrl)}&via=PoliticsWorldNews`, '_blank');
-                }}
-                className="px-2.5 py-1.5 rounded-xs bg-black hover:bg-neutral-900 text-white border border-neutral-700 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
-                title="Share to X (Twitter)"
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(displayArticle.title)}&url=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}#${displayArticle.id}`)}&via=PoliticsWorldNews`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 rounded-md bg-[#0b1530] hover:bg-[#13224a] border border-[#1c2f5e] hover:border-slate-400/60 text-slate-200 hover:text-white text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                title="Share to X"
               >
-                <span>𝕏 / Twitter</span>
-              </button>
+                <svg className="w-2.5 h-2.5 fill-current text-slate-100 shrink-0" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                <span>X</span>
+              </a>
 
               {/* Quick Copy Link */}
               <button
@@ -496,45 +542,29 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className={`px-2.5 py-1.5 rounded-xs text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
                   copied
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-[#0f1d3f] hover:bg-[#152a5c] text-sky-300 border border-[#1b3470]'
+                    ? 'bg-emerald-600 text-white border border-emerald-500'
+                    : 'bg-[#0b1530] hover:bg-[#13224a] text-sky-300 border border-[#1c2f5e]'
                 }`}
               >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? (langCode === 'hi' ? 'कॉपी हुआ!' : 'Copied!') : (langCode === 'hi' ? 'लिंक कॉपी करें' : 'Copy Link')}</span>
+                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? (langCode === 'hi' ? 'कॉपी हुआ' : 'Copied') : (langCode === 'hi' ? 'लिंक' : 'Copy')}</span>
               </button>
 
               {/* More Platforms Popover Modal */}
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="px-3 py-1.5 rounded-xs bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
-                title="Open all social platforms (LinkedIn, Facebook, Telegram, Reddit, Email)"
+                className="px-2.5 py-1 rounded-md bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                title="Open all social platforms (WhatsApp, Instagram, LinkedIn, Facebook, Telegram, Reddit, Email)"
               >
-                <span>{langCode === 'hi' ? 'अन्य विकल्प...' : 'More...'}</span>
+                <span>{langCode === 'hi' ? 'अन्य...' : 'More'}</span>
               </button>
             </div>
           </div>
 
-          {/* Quick Exit to News Feed Banner */}
-          <div className="p-4 sm:p-5 rounded-sm bg-gradient-to-r from-[#091533] via-[#0d1f4b] to-[#091533] border-2 border-amber-500/50 my-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
-            <div className="flex items-center gap-2.5 text-xs text-slate-300">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">✓</span>
-              <span>{langCode === 'hi' ? 'आपने यह समाचार पूरा पढ़ लिया है।' : 'You have completed reading this full article.'}</span>
-            </div>
-            <button
-              onClick={handleGoBack}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-serif font-black text-xs uppercase tracking-wider rounded-sm transition-all cursor-pointer shadow-md active:scale-95 shrink-0"
-              title={langCode === 'hi' ? 'समाचारों पर वापस जाएं' : 'Back to News'}
-            >
-              <ArrowLeft className="w-4 h-4 stroke-[3]" />
-              <span>{langCode === 'hi' ? '← समाचारों पर वापस जाएं' : '← Back to News'}</span>
-            </button>
-          </div>
-
           {/* Reader Discussion / Comments Section */}
-          <div className="pt-4 border-t border-[#16274e]">
+          <div className="mt-6 pt-4 border-t border-[#16274e]">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 text-base font-serif font-bold text-white">
                 <MessageSquare className="w-4 h-4 text-sky-400" />
@@ -543,23 +573,29 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
             </div>
 
             {/* Comment Form */}
-            <form onSubmit={handlePostComment} className="mb-6 space-y-3 bg-[#09132c] border border-[#17274e] p-4 rounded-sm">
+            <form onSubmit={handlePostComment} className="mb-6 space-y-2.5 bg-[#09132c] border border-[#17274e] p-4 rounded-sm">
               <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder={t.nameLabel}
-                  value={newCommentName}
-                  onChange={(e) => setNewCommentName(e.target.value)}
-                  className="sm:w-1/3 bg-[#060c1d] border border-[#1a2b55] focus:border-sky-400 rounded-sm px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  required
-                  placeholder={t.writeComment}
-                  value={newCommentText}
-                  onChange={(e) => setNewCommentText(e.target.value)}
-                  className="flex-1 bg-[#060c1d] border border-[#1a2b55] focus:border-sky-400 rounded-sm px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none"
-                />
+                <div className="relative flex-1 flex items-center">
+                  <input
+                    ref={commentInputRef}
+                    type="text"
+                    required
+                    placeholder={t.writeComment}
+                    value={newCommentText}
+                    onChange={(e) => setNewCommentText(e.target.value)}
+                    className="w-full bg-[#060c1d] border border-[#1a2b55] focus:border-sky-400 rounded-sm pl-3 pr-9 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    className="absolute right-2 p-1 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                    title={langCode === 'hi' ? 'और इमोजी देखें' : 'Toggle Emoji Picker'}
+                    aria-label="Toggle Emoji Picker"
+                    aria-expanded={showEmojiPicker}
+                  >
+                    <Smile className="w-4 h-4" />
+                  </button>
+                </div>
                 <button
                   type="submit"
                   className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#060c1d] bg-sky-400 hover:bg-sky-300 rounded-sm transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0"
@@ -568,6 +604,50 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
                   <span>{t.post}</span>
                 </button>
               </div>
+
+              {/* Visible Quick Emoji Strip */}
+              <div className="flex flex-wrap items-center gap-1 pt-1">
+                <span className="text-[11px] text-slate-400 mr-1 font-medium">
+                  {langCode === 'hi' ? 'इमोजी:' : 'Emojis:'}
+                </span>
+                {QUICK_COMMENT_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => handleInsertEmoji(emoji)}
+                    className="px-1.5 py-0.5 text-base leading-none rounded bg-[#060c1d] hover:bg-[#132550] border border-[#1a2b55] hover:border-amber-400/60 transition-all cursor-pointer active:scale-90"
+                    title={`Insert ${emoji}`}
+                    aria-label={`Insert emoji ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  className="ml-1 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded bg-[#060c1d] hover:bg-[#132550] text-amber-300 border border-[#1a2b55] cursor-pointer"
+                >
+                  {showEmojiPicker ? (langCode === 'hi' ? 'कम' : 'Less') : (langCode === 'hi' ? '+ और' : '+ More')}
+                </button>
+              </div>
+
+              {/* Expanded Emoji Tray */}
+              {showEmojiPicker && (
+                <div className="p-2.5 rounded bg-[#060c1d] border border-[#1b2f5d] flex flex-wrap gap-1.5">
+                  {EXTRA_COMMENT_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleInsertEmoji(emoji)}
+                      className="px-2 py-1 text-base leading-none rounded bg-[#09132c] hover:bg-[#162b5c] border border-[#1a2b55] hover:border-sky-400 transition-all cursor-pointer active:scale-90"
+                      title={`Insert ${emoji}`}
+                      aria-label={`Insert emoji ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
             </form>
 
             {/* Comments List */}
@@ -587,16 +667,8 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
               ))}
             </div>
 
-            {/* Bottom Final Return Button */}
-            <div className="mt-8 pt-6 border-t border-[#16274e] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-              <button
-                onClick={handleGoBack}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-serif font-black text-xs uppercase tracking-wider rounded transition-all cursor-pointer shadow-md active:scale-95"
-                title={langCode === 'hi' ? 'समाचारों पर वापस जाएं' : 'Back to News'}
-              >
-                <ArrowLeft className="w-4 h-4 stroke-[3]" />
-                <span>{langCode === 'hi' ? '← समाचारों पर वापस जाएं' : '← Back to News'}</span>
-              </button>
+            {/* Bottom Editorial Sign-off */}
+            <div className="mt-8 pt-6 border-t border-[#16274e] flex items-center justify-center text-xs text-slate-400">
               <span className="font-mono text-[11px] text-slate-400">
                 Politics World International Journal of Record · Verified Real-Time
               </span>

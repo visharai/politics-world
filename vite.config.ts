@@ -84,12 +84,44 @@ function openGraphDynamicSeoPlugin(): Plugin {
   };
 }
 
+function disableHmrClientWsPlugin(): Plugin {
+  let wsDisabled = false;
+  return {
+    name: 'disable-hmr-client-ws',
+    apply: 'serve',
+    enforce: 'post',
+    configResolved(resolvedConfig) {
+      wsDisabled =
+        resolvedConfig.server.hmr === false || resolvedConfig.server.ws === false;
+    },
+    transform(code, id) {
+      if (!wsDisabled) return null;
+      const normalizedId = id.replace(/\\/g, '/').split('?')[0];
+      if (!normalizedId.endsWith('/vite/dist/client/client.mjs')) return null;
+      return code
+        .replace(
+          /const transport = normalizeModuleRunnerTransport\(\(\(\) => \{[\s\S]*?\}\)\(\)\);/,
+          'const transport = normalizeModuleRunnerTransport({ async connect() {}, async disconnect() {}, send() {} });'
+        )
+        .replace(
+          /setupForwardConsoleHandler\(transport,\s*forwardConsole\);?/g,
+          '/* console forwarding disabled */'
+        )
+        .replace(
+          /new WebSocket\([^)]*\)/g,
+          '({ readyState: 3, addEventListener: function(){}, removeEventListener: function(){}, send: function(){}, close: function(){} })'
+        );
+    },
+  };
+}
+
 export default defineConfig(() => {
   return {
     plugins: [
       react(),
       tailwindcss(),
       openGraphDynamicSeoPlugin(),
+      disableHmrClientWsPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: [
@@ -186,7 +218,7 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
+          enabled: false,
           type: 'module',
         },
       }),
@@ -200,11 +232,10 @@ export default defineConfig(() => {
       port: 3000,
       host: '0.0.0.0',
       allowedHosts: true as const,
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
-      hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // HMR and WebSocket connections are disabled in AI Studio preview environment.
+      hmr: false as const,
+      ws: false as const,
+      watch: null,
     },
   };
 });

@@ -19,6 +19,7 @@ import { MonetizationHubModal } from './components/MonetizationHubModal';
 import { CricketLiveSection, CricketScoreStrip } from './components/CricketLiveSection';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { Article, OpinionColumn } from './data/newsData';
+import { AdSlotKey } from './data/adSlotsConfig';
 import { DAILY_ROTATING_ITEMS } from './data/dailyRotatingFeed';
 import { useLanguage } from './context/LanguageContext';
 import { useTheme } from './context/ThemeContext';
@@ -28,6 +29,7 @@ import { gnewsService } from './services/gnewsService';
 import { liveNewsService } from './services/liveNewsService';
 import { translationService } from './services/translationService';
 import { translateArticle as universalTranslateArticle } from './utils/universalTranslator';
+import { trackGA4Event } from './utils/ga4Analytics';
 
 export default function App() {
   const {
@@ -171,14 +173,31 @@ export default function App() {
     return false;
   });
   const [monetizationInitialTab, setMonetizationInitialTab] = useState<
-    'revenue' | 'wallet' | 'invoice' | 'ratecard' | 'adsense' | 'calculator' | 'guide'
+    'revenue' | 'wallet' | 'invoice' | 'ratecard' | 'calculator' | 'guide' | 'reports'
   >('ratecard');
+  const [checkoutSlotRequest, setCheckoutSlotRequest] = useState<AdSlotKey | null>(null);
 
   const handleOpenMonetizationHub = (
-    tab: 'revenue' | 'wallet' | 'invoice' | 'ratecard' | 'adsense' | 'calculator' | 'guide' = 'ratecard'
+    tab: 'revenue' | 'wallet' | 'invoice' | 'ratecard' | 'calculator' | 'guide' | 'reports' = 'ratecard',
+    slotKey?: AdSlotKey
   ) => {
     setMonetizationInitialTab(tab);
+    if (slotKey) {
+      setCheckoutSlotRequest(slotKey);
+    }
     setIsMonetizationHubOpen(true);
+  };
+
+  const handleScrollToLiveSlot = (domTargetId: string) => {
+    setActiveArticleModal(null);
+    setTimeout(() => {
+      const el = document.getElementById(domTargetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 150);
   };
 
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -201,10 +220,15 @@ export default function App() {
   useEffect(() => {
     if (activeArticleModal) {
       updateSEOForArticle(activeArticleModal);
+      trackGA4Event('article_view', {
+        article_id: activeArticleModal.id,
+        category: activeArticleModal.category,
+        edition_lang: langCode,
+      });
     } else {
       resetSEOToDefault(leadArticle);
     }
-  }, [activeArticleModal, leadArticle]);
+  }, [activeArticleModal, leadArticle, langCode]);
 
   // Deep-linking: auto-open article reader when visitor clicks a shared social or direct link
   // Supports both query parameters (?article=... or ?id=...) and URL hashes (#art-...)
@@ -279,6 +303,20 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleOpenLegalArticle7 = () => {
+    setIsMonetizationHubOpen(false);
+    setCheckoutSlotRequest(null);
+    setIsPrivacyPolicyOpen(true);
+    setTimeout(() => {
+      const el = document.getElementById('direct-branding-invoicing');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 150);
+  };
+
   const handleClosePrivacyPolicy = () => {
     setIsPrivacyPolicyOpen(false);
     if (window.location.hash.includes('privacy')) {
@@ -337,7 +375,8 @@ export default function App() {
             handleClosePrivacyPolicy();
             handleNavigate('subscribe-section');
           }}
-          onOpenMonetizationHub={() => setIsMonetizationHubOpen(true)}
+          onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard')}
+          onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
           activeSection={activeSection}
           onNavigate={(secId) => {
             handleClosePrivacyPolicy();
@@ -358,12 +397,23 @@ export default function App() {
             handleNavigate('subscribe-section');
           }}
           onOpenPrivacyPolicy={handleOpenPrivacyPolicy}
-          onOpenMonetizationHub={() => setIsMonetizationHubOpen(true)}
+          onOpenMonetizationHub={(tab) => handleOpenMonetizationHub(tab || 'ratecard')}
         />
 
         <MonetizationHubModal
           isOpen={isMonetizationHubOpen}
-          onClose={() => setIsMonetizationHubOpen(false)}
+          onClose={() => {
+            setIsMonetizationHubOpen(false);
+            setCheckoutSlotRequest(null);
+          }}
+          initialTab={monetizationInitialTab}
+          checkoutSlotRequest={checkoutSlotRequest}
+          onConsumeCheckoutRequest={() => setCheckoutSlotRequest(null)}
+          onNavigateToSlot={(domTargetId) => {
+            handleClosePrivacyPolicy();
+            handleScrollToLiveSlot(domTargetId);
+          }}
+          onOpenLegalArticle7={handleOpenLegalArticle7}
         />
 
         <ThemeToggle />
@@ -378,12 +428,16 @@ export default function App() {
         onOpenSearch={handleOpenSearch}
         onSubscribeClick={() => handleNavigate('subscribe-section')}
         onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard')}
+        onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
         activeSection={activeSection}
         onNavigate={handleNavigate}
       />
 
-      {/* The Washington Post Style Top Leaderboard Billboard Advertisement */}
-      <TopLeaderboardAd onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard')} />
+      {/* Dynamic Live Header Leaderboard Billboard Advertisement */}
+      <TopLeaderboardAd
+        onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard', 'header')}
+        onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
+      />
 
       {/* Breaking Wire Dispatch Ticker */}
       <BreakingTicker onSelectBreaking={handleSelectBreaking} />
@@ -404,6 +458,7 @@ export default function App() {
         {/* Live Automated News Wire: Powered by Real-Time 0-Delay Sources */}
         <LiveWireSection
           onOpenArticle={(art) => setActiveArticleModal(art)}
+          onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
         />
 
         {/* Real-Time Auto-Updating Live Cricket Scoreboard */}
@@ -415,12 +470,15 @@ export default function App() {
           onOpenArticle={(art) => setActiveArticleModal(art)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard')}
+          onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard', 'sponsored-article')}
+          onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
           leadArticleId={leadArticle.id}
         />
 
-        {/* Global Leader Ranking & Approval Index */}
-        <GlobalLeaderRanking />
+        {/* Podcast & Audio Briefings (Real-Time News Audio Broadcast) */}
+        <PodcastSection
+          onBookSlot={(slotKey) => handleOpenMonetizationHub('ratecard', slotKey)}
+        />
 
         {/* Interactive Capitol & Parliamentary Bill Radar */}
         <PolicyTracker />
@@ -428,8 +486,8 @@ export default function App() {
         {/* Fact-Check & Congressional Statement Audits */}
         <FactCheckSection />
 
-        {/* Podcast & Audio Briefings */}
-        <PodcastSection />
+        {/* Global Leader Ranking & Approval Index (International Mandate Index) */}
+        <GlobalLeaderRanking />
       </main>
 
       {/* Editorial Masthead Footer */}
@@ -444,7 +502,7 @@ export default function App() {
       <ArticleModal
         article={activeArticleModal}
         onClose={() => setActiveArticleModal(null)}
-        onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard')}
+        onOpenMonetizationHub={() => handleOpenMonetizationHub('ratecard', 'in-article')}
       />
 
       {/* Global Quick Search Modal */}
@@ -463,8 +521,15 @@ export default function App() {
       {/* Monetization & Earning Hub Modal */}
       <MonetizationHubModal
         isOpen={isMonetizationHubOpen}
-        onClose={() => setIsMonetizationHubOpen(false)}
+        onClose={() => {
+          setIsMonetizationHubOpen(false);
+          setCheckoutSlotRequest(null);
+        }}
         initialTab={monetizationInitialTab}
+        checkoutSlotRequest={checkoutSlotRequest}
+        onConsumeCheckoutRequest={() => setCheckoutSlotRequest(null)}
+        onNavigateToSlot={handleScrollToLiveSlot}
+        onOpenLegalArticle7={handleOpenLegalArticle7}
       />
 
       {/* Offline Connectivity Indicator */}

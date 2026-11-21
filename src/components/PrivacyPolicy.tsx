@@ -31,15 +31,16 @@ import {
   Cpu,
   Building2,
   XCircle,
-  Receipt,
   Calendar,
   CreditCard,
   Award,
   Scroll,
   BadgeCheck,
+  Download,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { downloadLegalGazettePdf } from '../utils/pdfExport';
 
 interface PrivacyPolicyProps {
   onBack: () => void;
@@ -83,6 +84,24 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
   const isHindi = policyLang === 'hi';
 
+  const sectionsNavEn = [
+    { id: 'shield-summary', roman: 'PROLOGUE', title: 'Executive Safe Harbor Declaration & Immunity Shield' },
+    { id: 'intermediary-status', roman: 'ARTICLE I', title: 'Neutral Intermediary & Technology Platform Status' },
+    { id: 'sovereign-expansion-rights', roman: 'ARTICLE II', title: 'Sovereign Right to Integrate Future Channels, Agencies & APIs' },
+    { id: 'liability-immunity', roman: 'ARTICLE III', title: 'Complete Liability Immunity & Statutory Safe Harbor' },
+    { id: 'multimedia-legal-shield', roman: 'ARTICLE IV', title: 'Comprehensive Legal Framework: Videos, Photos & Voice Synthesis' },
+    { id: 'syndicated-feeds-attribution', roman: 'ARTICLE V', title: 'Syndicated Feed Attribution & Originating Publisher Liability' },
+    { id: 'adsense-advertising', roman: 'ARTICLE VI', title: 'Google AdSense, DART Cookies & Zero Advertising Liability' },
+    { id: 'direct-branding-invoicing', roman: 'ARTICLE VII', title: 'Direct Sponsorships, Sponsored Articles (Photo/Video/Voice), Tax Invoicing & Sovereign Editorial Rights' },
+    { id: 'originating-agency-recourse', roman: 'ARTICLE VIII', title: 'Third-Party Content Disputes: Direct Recourse to Originating Wire Agency Only' },
+    { id: 'information-collected', roman: 'ARTICLE IX', title: 'Information Collected & Data Minimization' },
+    { id: 'cookies-storage', roman: 'ARTICLE X', title: 'Cookies, Web Beacons & Browser Local Storage' },
+    { id: 'gdpr-ccpa-dpdp', roman: 'ARTICLE XI', title: 'Multilateral Privacy Rights (DPDP Act, GDPR, CCPA)' },
+    { id: 'limitation-liability', roman: 'ARTICLE XII', title: 'Absolute Limitation of Legal Liability & Hold Harmless' },
+    { id: 'governing-law', roman: 'ARTICLE XIII', title: 'Jurisdiction, Severability & Dispute Forum' },
+    { id: 'contact-officers', roman: 'ARTICLE XIV', title: 'Platform Technical & Legal Compliance Contacts' },
+  ];
+
   const sectionsNav = isHindi
     ? [
         { id: 'shield-summary', roman: 'PROLOGUE', title: 'विधिक सुरक्षा सूचना एवं सुरक्षित कवच (Executive Safe Harbor)' },
@@ -101,23 +120,20 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
         { id: 'governing-law', roman: 'ARTICLE XIII', title: 'क्षेत्राधिकार, पृथक्करणीयता एवं लागू कानून' },
         { id: 'contact-officers', roman: 'ARTICLE XIV', title: 'तकनीकी एवं विधिक अनुपालन संपर्क' },
       ]
-    : [
-        { id: 'shield-summary', roman: 'PROLOGUE', title: 'Executive Safe Harbor Declaration & Immunity Shield' },
-        { id: 'intermediary-status', roman: 'ARTICLE I', title: 'Neutral Intermediary & Technology Platform Status' },
-        { id: 'sovereign-expansion-rights', roman: 'ARTICLE II', title: 'Sovereign Right to Integrate Future Channels, Agencies & APIs' },
-        { id: 'liability-immunity', roman: 'ARTICLE III', title: 'Complete Liability Immunity & Statutory Safe Harbor' },
-        { id: 'multimedia-legal-shield', roman: 'ARTICLE IV', title: 'Comprehensive Legal Framework: Videos, Photos & Voice Synthesis' },
-        { id: 'syndicated-feeds-attribution', roman: 'ARTICLE V', title: 'Syndicated Feed Attribution & Originating Publisher Liability' },
-        { id: 'adsense-advertising', roman: 'ARTICLE VI', title: 'Google AdSense, DART Cookies & Zero Advertising Liability' },
-        { id: 'direct-branding-invoicing', roman: 'ARTICLE VII', title: 'Direct Sponsorships, Sponsored Articles (Photo/Video/Voice), Tax Invoicing & Sovereign Editorial Rights' },
-        { id: 'originating-agency-recourse', roman: 'ARTICLE VIII', title: 'Third-Party Content Disputes: Direct Recourse to Originating Wire Agency Only' },
-        { id: 'information-collected', roman: 'ARTICLE IX', title: 'Information Collected & Data Minimization' },
-        { id: 'cookies-storage', roman: 'ARTICLE X', title: 'Cookies, Web Beacons & Browser Local Storage' },
-        { id: 'gdpr-ccpa-dpdp', roman: 'ARTICLE XI', title: 'Multilateral Privacy Rights (DPDP Act, GDPR, CCPA)' },
-        { id: 'limitation-liability', roman: 'ARTICLE XII', title: 'Absolute Limitation of Legal Liability & Hold Harmless' },
-        { id: 'governing-law', roman: 'ARTICLE XIII', title: 'Jurisdiction, Severability & Dispute Forum' },
-        { id: 'contact-officers', roman: 'ARTICLE XIV', title: 'Platform Technical & Legal Compliance Contacts' },
-      ];
+    : sectionsNavEn;
+
+  const normalizedFilter = filterQuery.trim().toLowerCase();
+  const filteredSectionsNav = normalizedFilter
+    ? sectionsNav.filter((sec, idx) => {
+        const enMatch = sectionsNavEn[idx]?.title.toLowerCase().includes(normalizedFilter);
+        return (
+          sec.title.toLowerCase().includes(normalizedFilter) ||
+          sec.roman.toLowerCase().includes(normalizedFilter) ||
+          sec.id.toLowerCase().includes(normalizedFilter) ||
+          Boolean(enMatch)
+        );
+      })
+    : sectionsNav;
 
   // Luxury & Standard Theme Palettes
   const pageBgClass = isDark
@@ -167,7 +183,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
             <div className={`h-6 w-px hidden sm:block ${isDark ? 'bg-amber-500/20' : 'bg-slate-300'}`} />
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <span className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
                 isDark
                   ? 'bg-gradient-to-br from-amber-400/20 via-amber-950/60 to-black border-amber-400/70 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
@@ -175,12 +191,19 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
               }`}>
                 <Scale className="w-4 h-4" />
               </span>
-              <div>
-                <h1 className={`text-xs sm:text-sm font-serif font-black uppercase tracking-[0.14em] ${textTitleClass}`}>
+              <div className="min-w-0">
+                <h1 className={`text-xs sm:text-sm font-serif font-black uppercase tracking-[0.14em] leading-none ${textTitleClass}`}>
                   POLITICS WORLD · {isHindi ? 'विधिक एवं मानक राजपत्र' : 'LEGAL & STANDARDS GAZETTE'}
                 </h1>
+                <img
+                  src="/images/politics_world_logo.png"
+                  alt="Politics World Official Logo"
+                  className="w-32 sm:w-44 h-auto object-contain block mt-0.5 mb-0.5 drop-shadow-[0_2px_5px_rgba(0,0,0,0.45)]"
+                />
                 <p className={`text-[10px] font-mono tracking-wider ${goldSubtleClass}`}>
-                  CODIFIED SAFE HARBOR PROTOCOL · EST. 2026
+                  {isHindi
+                    ? 'संहिताबद्ध सेफ हार्बर प्रोटोकॉल · भारत (IST) · 2026'
+                    : 'CODIFIED SAFE HARBOR PROTOCOL · INDIA (IST) · 2026'}
                 </p>
               </div>
             </div>
@@ -233,8 +256,24 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
               {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-700" />}
             </button>
 
+            {/* Download Official Instrument PDF */}
+            <button
+              type="button"
+              onClick={() => downloadLegalGazettePdf(sectionsNavEn, 'November 5, 2026', 'November 9, 2026')}
+              className={`px-3 py-1.5 rounded-sm border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                isDark
+                  ? 'bg-[#08122d] hover:bg-[#12234e] border-amber-500/30 text-emerald-300'
+                  : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
+              }`}
+              title="Download Official PDF"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-500" />
+              <span>PDF</span>
+            </button>
+
             {/* Print Official Instrument */}
             <button
+              type="button"
               onClick={handlePrint}
               className={`px-3 py-1.5 rounded-sm border text-xs font-mono font-bold items-center gap-1.5 cursor-pointer transition-all hidden sm:flex ${
                 isDark
@@ -306,7 +345,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
             }`}>
               <div className="flex items-center gap-2 pb-2 border-b border-amber-500/30 text-[11px] font-serif font-black uppercase tracking-wider text-amber-500 dark:text-amber-400">
                 <Scroll className="w-3.5 h-3.5" />
-                <span>NOTARIZED REGISTRY · 2026</span>
+                <span>NOTARIZED REGISTRY · INDIA (IST) · 2026</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className={textMutedClass}>{isHindi ? 'प्रभावी तिथि:' : 'Effective Date:'}</span>
@@ -440,7 +479,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
               <div className={`p-4 rounded-sm border ${innerPanelClass}`}>
                 <p className={textTitleClass}>
-                  <strong>7. Direct Sponsorships, Tax Invoicing & Conclusive Delivery Shield:</strong> All non-programmatic direct sponsorships, corporate wire releases, and reader memberships are executed under fixed-term Insertion Orders (Weekly, Monthly, Quarterly, Annual) with mandatory 100% pre-payment and statutory Tax Invoices (SAC 998363). Public live URL deployment constitutes conclusive, non-rebuttable proof of delivery under the best-efforts technology standard. Ad fees are strictly non-refundable once live, and the platform owner is fully shielded against bad-faith non-delivery allegations.
+                  <strong>7. Direct Sponsorships, Tax Invoicing & Conclusive Delivery Shield:</strong> All non-programmatic direct sponsorships, corporate wire releases, and reader memberships are executed under fixed-term Insertion Orders (Weekly, Monthly, Quarterly, Annual) with mandatory 100% INR pre-payment and statutory Tax Invoices (SAC 998363 · 18% India GST). Public live URL deployment constitutes conclusive, non-rebuttable proof of delivery under the best-efforts technology standard. Ad fees are strictly Not Refundable once scheduled or live, and the platform owner is fully shielded against bad-faith non-delivery allegations.
                 </p>
               </div>
             </div>
@@ -486,7 +525,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-            {sectionsNav.map((sec) => (
+            {filteredSectionsNav.map((sec) => (
               <a
                 key={sec.id}
                 href={`#${sec.id}`}
@@ -506,6 +545,13 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
               </a>
             ))}
           </div>
+          {filteredSectionsNav.length === 0 && (
+            <div className={`text-xs font-mono py-3 text-center ${textMutedClass}`}>
+              {isHindi
+                ? 'कोई मिलती-जुलती विधिक धारा नहीं मिली। कृपया दूसरा शब्द खोजें।'
+                : 'No matching article found in index. Try another legal keyword.'}
+            </div>
+          )}
         </div>
 
         {/* ===================================================================== */}
@@ -906,7 +952,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
             <div className="space-y-4 pt-1">
               <div className={`p-4 rounded-sm border ${innerPanelClass}`}>
                 <div className="font-bold flex items-center gap-2 text-sm text-purple-400 mb-1">
-                  <Receipt className="w-4 h-4 text-purple-400 shrink-0" />
+                  <FileText className="w-4 h-4 text-purple-400 shrink-0" />
                   <span>
                     {isHindi
                       ? 'गैर-प्रोग्रामेटिक डायरेक्ट ब्रांडिंग, प्रायोजित आलेख व स्पॉन्सरशिप्स का विधिक दायरा (SAC 998363)'
@@ -937,13 +983,13 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                 {/* 7B: Tax Invoicing */}
                 <div className={`p-4 rounded-sm border space-y-2 ${innerPanelClass}`}>
                   <div className="flex items-center gap-2 text-sky-400 font-bold uppercase text-xs">
-                    <Receipt className="w-4 h-4 text-sky-400 shrink-0" />
+                    <FileText className="w-4 h-4 text-sky-400 shrink-0" />
                     <span>{isHindi ? 'ख. आधिकारिक टैक्स इनवॉइस एवं 100% अग्रिम भुगतान' : 'B. Statutory Tax Invoicing & Pre-Payment'}</span>
                   </div>
                   <p className={textMutedClass}>
                     {isHindi
-                      ? 'डिजिटल विज्ञापन सेवाओं (SAC 998363 - Internet Advertising Services & Sponsored Publishing) के तहत प्रत्येक डायरेक्ट विज्ञापनदाता व आलेख प्रस्तुतकर्ता को अभियान अवधि, स्लॉट विवरण, लागू जीएसटी (18% GST) और अद्वितीय इनवॉइस नंबर के साथ आधिकारिक टैक्स इनवॉइस जारी की जाती है। किसी भी विज्ञापन या आलेख को लाइव करने से पूर्व 100% अग्रिम भुगतान (Pre-payment) अनिवार्य है।'
-                      : 'Under SAC Code 998363 (Internet Advertising Space Selling & Sponsored Publishing), every direct advertiser and article submitter is provided a formal Tax Invoice specifying campaign tenure, placement slot, applicable Goods and Services Tax (18% GST / VAT), and a unique invoice identifier. Mandatory 100% pre-payment is required prior to activation.'}
+                      ? 'डिजिटल विज्ञापन सेवाओं (SAC 998363 - Internet Advertising Services & Sponsored Publishing) के तहत प्रत्येक डायरेक्ट विज्ञापनदाता व आलेख प्रस्तुतकर्ता को अभियान अवधि, स्लॉट विवरण, लागू भारतीय जीएसटी (18% GST · CGST 9% + SGST 9% / IGST 18%) और अद्वितीय इनवॉइस नंबर के साथ आधिकारिक टैक्स इनवॉइस जारी की जाती है। किसी भी विज्ञापन या आलेख को लाइव करने से पूर्व 100% INR अग्रिम भुगतान (Pre-payment · Strictly Not Refundable) अनिवार्य है।'
+                      : 'Under SAC Code 998363 (Internet Advertising Space Selling & Sponsored Publishing), every direct advertiser and article submitter is provided a formal India Tax Invoice specifying campaign tenure, placement slot, applicable 18% GST (9% CGST + 9% SGST / 18% IGST), and a unique invoice identifier. Mandatory 100% digital INR pre-payment (Strictly Not Refundable) is required prior to activation.'}
                   </p>
                 </div>
               </div>
@@ -1062,10 +1108,14 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                       : 'Internet delivery relies on third-party CDNs, ISP routing, and local browser environments. If an end-user utilizes client-side Ad-Blockers, private DNS, or local cache configurations that prevent an ad from rendering, such events shall NEVER constitute a breach of contract or platform default. Server access logs and live URL timestamps serve as definitive legal proof of fulfillment.'}
                   </li>
                   <li>
-                    <strong>{isHindi ? 'पूर्णतः गैर-वापसी योग्य समझौता (Strict No-Refund Covenant):' : 'Strict Non-Refundable Agreement:'}</strong>{' '}
+                    <strong>
+                      {isHindi
+                        ? 'पूर्णतः गैर-वापसी योग्य समझौता (Strictly Not Refundable / No-Refund Covenant):'
+                        : 'Strict Not Refundable Agreement (Zero Refund Policy):'}
+                    </strong>{' '}
                     {isHindi
-                      ? 'एक बार जब विज्ञापन अभियान या प्रायोजित आलेख लाइव या तकनीकी रूप से शेड्यूल हो जाता है, तो भुगतान की गई कोई भी राशि किसी भी परिस्थिति में वापस (Refund) नहीं की जाएगी और न ही कोई चार्ज-बैक या बैंक विवाद मान्य होगा।'
-                      : 'All sponsorship, advertising, native press release, and sponsored article retainers are strictly and non-negotiably non-refundable once scheduled or published. No chargebacks or reimbursement demands shall be legally actionable.'}
+                      ? 'एक बार जब विज्ञापन अभियान या प्रायोजित आलेख लाइव या तकनीकी रूप से शेड्यूल हो जाता है, तो भुगतान की गई कोई भी राशि किसी भी परिस्थिति में Not Refundable (गैर-वापसी योग्य) रहेगी और न ही कोई चार्ज-बैक या बैंक विवाद मान्य होगा।'
+                      : 'All sponsorship, advertising, native press release, and sponsored article retainers are strictly Not Refundable once scheduled or published. No refunds, chargebacks, or reimbursement demands shall be accepted or legally actionable under any circumstances.'}
                   </li>
                   <li>
                     <strong>{isHindi ? 'अनुचित सामग्री को हटाने का अधिकार:' : 'Right to Takedown Prohibited Ad Copy:'}</strong>{' '}
@@ -1220,11 +1270,16 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                 <li>{isHindi ? 'भाषा प्राथमिकता (जैसे हिंदी, अंग्रेजी आदि)।' : 'Language choice across our multi-lingual interfaces.'}</li>
                 <li>{isHindi ? 'डिस्प्ले थीम (डार्क मोड / ब्राइट मोड)।' : 'Visual display theme (Dark Mode / Bright Mode).'}</li>
                 <li>{isHindi ? 'आपके द्वारा सहेजे गए समाचार (Saved Dispatches)।' : 'Locally stored bookmarked stories.'}</li>
+                <li>
+                  {isHindi
+                    ? 'Google Analytics 4 (GA4 + IP Anonymization): केवल वेबसाइट के कुल पाठक ट्रैफ़िक, राज्य-वार रीच और विज्ञापन प्रदर्शन मापने हेतु (बिना किसी व्यक्तिगत पहचान के) उपयोग किया जाता है जब पब्लिशर द्वारा GA_MEASUREMENT_ID जुड़ा हो।'
+                    : 'Google Analytics 4 (GA4 with IP Anonymization): Used solely for aggregated audience traffic, Indian state reach, and anonymized ad impression/click measurement when linked via GA_MEASUREMENT_ID.'}
+                </li>
               </ul>
               <p className={`text-xs ${textMutedClass}`}>
                 {isHindi
-                  ? 'यह डेटा पूरी तरह आपके अपने फोन या कंप्यूटर में सुरक्षित रहता है और हमारे सर्वर पर किसी पहचान से ट्रैक नहीं किया जाता।'
-                  : 'These preferences exist entirely within your local browser sandbox and are not tracked or stored on our central infrastructure.'}
+                  ? 'व्यक्तिगत ब्राउज़र प्राथमिकताएं पूरी तरह आपके अपने फोन या कंप्यूटर में सुरक्षित रहती हैं और हमारे सर्वर पर किसी पहचान से ट्रैक नहीं की जातीं।'
+                  : 'Personal interface preferences remain strictly inside your local browser sandbox without individual identity tracking.'}
               </p>
             </div>
           </section>

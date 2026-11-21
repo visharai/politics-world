@@ -635,7 +635,9 @@ export const IndianLiveStreamSection: React.FC<IndianLiveStreamSectionProps> = (
             >
               <div className="text-xs font-bold uppercase font-serif text-slate-900 dark:text-white flex items-center justify-between">
                 <span>{langCode === 'hi' ? 'अन्य चैनल चुनें' : 'Switch Broadcaster'}</span>
-                <span className="text-[10px] font-mono text-emerald-500 font-normal">All 4 Channels Ready</span>
+                <span className="text-[10px] font-mono text-emerald-500 font-normal">
+                  {INDIAN_NEWS_CHANNELS.length} {langCode === 'hi' ? 'चैनल तैयार' : 'Channels Ready'}
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {INDIAN_NEWS_CHANNELS.map((ch) => {

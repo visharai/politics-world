@@ -102,6 +102,304 @@
         }
       },
       "required": ["email", "message", "createdAt"]
+    },
+    "publisher_security_vault": {
+      "title": "Publisher Security Vault",
+      "description": "Cryptographically hashed PIN and recovery credentials restricted exclusively to verified publisher owner",
+      "type": "object",
+      "properties": {
+        "ownerEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Authorized publisher owner email address"
+        },
+        "pinHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 128,
+          "pattern": "^[a-f0-9]+$",
+          "description": "Salted SHA-256 cryptographic digest of publisher PIN"
+        },
+        "pinSalt": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]+$",
+          "description": "Random hex salt used for PIN hashing"
+        },
+        "recoveryHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 128,
+          "pattern": "^[a-f0-9]+$",
+          "description": "SHA-256 hash of one-time owner recovery key"
+        },
+        "updatedByEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified owner email that performed last security update"
+        },
+        "failedAttempts": {
+          "type": "integer",
+          "description": "Consecutive failed PIN verification counter"
+        },
+        "lockoutUntil": {
+          "type": "integer",
+          "description": "Epoch millisecond timestamp until brute-force lockout expires"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last update timestamp"
+        }
+      },
+      "required": ["ownerEmail", "pinHash", "pinSalt", "updatedByEmail", "createdAt", "updatedAt"]
+    },
+    "live_ad_slot": {
+      "title": "Live Advertisement Slot",
+      "description": "Publicly rendered live commercial slot containing verified uploaded poster banner URL and clickable destination link",
+      "type": "object",
+      "properties": {
+        "slotKey": {
+          "type": "string",
+          "enum": ["header", "in-article", "sponsored-article", "multimedia-feature", "sponsored-wire", "magazine"],
+          "description": "Identifier of the editorial placement slot across the website"
+        },
+        "brandName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Verified advertiser or organization name"
+        },
+        "headline": {
+          "type": "string",
+          "maxLength": 180,
+          "description": "Optional descriptive alt text or companion caption"
+        },
+        "bannerUrl": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 1024,
+          "description": "Uploaded banner poster image path or verified HTTPS URL"
+        },
+        "targetUrl": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 1024,
+          "pattern": "^https?://.+",
+          "description": "Destination website URL opened when reader clicks the live ad banner"
+        },
+        "durationKey": {
+          "type": "string",
+          "enum": ["1-week", "1-month", "3-months", "1-year"],
+          "description": "Booked campaign tenure key"
+        },
+        "durationDays": {
+          "type": "integer",
+          "description": "Number of active days for the campaign"
+        },
+        "bookingId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 128,
+          "description": "Reference ID linking to verified payment booking"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["verified"],
+          "description": "Automated payment verification status"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "expired", "paused"],
+          "description": "Current operational status of the ad slot"
+        },
+        "activatedAtIso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp when campaign went live"
+        },
+        "expiresAtIso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp when campaign automatically expires"
+        },
+        "expiresAtMs": {
+          "type": "integer",
+          "description": "Epoch milliseconds for automated expiration enforcement"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of deployment"
+        }
+      },
+      "required": [
+        "slotKey",
+        "brandName",
+        "bannerUrl",
+        "targetUrl",
+        "durationKey",
+        "durationDays",
+        "bookingId",
+        "paymentStatus",
+        "status",
+        "activatedAtIso",
+        "expiresAtIso",
+        "expiresAtMs",
+        "updatedAt"
+      ]
+    },
+    "ad_booking": {
+      "title": "Self-Serve Ad Booking & Tax Invoice",
+      "description": "Immutable commercial checkout, GST invoice, and payment verification audit log isolated to Publisher Owner",
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 128,
+          "description": "Unique booking identifier"
+        },
+        "slotKey": {
+          "type": "string",
+          "enum": ["header", "in-article", "sponsored-article", "multimedia-feature", "sponsored-wire", "magazine"],
+          "description": "Booked placement slot"
+        },
+        "durationKey": {
+          "type": "string",
+          "enum": ["1-week", "1-month", "3-months", "1-year"],
+          "description": "Campaign duration tier"
+        },
+        "durationDays": {
+          "type": "integer",
+          "description": "Campaign duration in days"
+        },
+        "brandName": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Advertiser company or brand name"
+        },
+        "contactPerson": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Authorized advertiser contact"
+        },
+        "advertiserEmail": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 150,
+          "description": "Advertiser billing email"
+        },
+        "advertiserPhone": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Advertiser contact phone"
+        },
+        "clientType": {
+          "type": "string",
+          "enum": ["b2b", "b2c"],
+          "description": "India domestic GST tax classification (B2B GSTIN or B2C Rule 46 URP)"
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["INR"],
+          "description": "India domestic settlement currency code (INR)"
+        },
+        "gstin": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Indian 15-character GSTIN or URP-B2C tax classification"
+        },
+        "bannerUrl": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Uploaded banner poster path"
+        },
+        "targetUrl": {
+          "type": "string",
+          "maxLength": 1024,
+          "pattern": "^https?://.+",
+          "description": "Target destination website URL"
+        },
+        "baseAmount": {
+          "type": "integer",
+          "description": "Taxable base amount in Indian Rupees (INR)"
+        },
+        "gstAmount": {
+          "type": "integer",
+          "description": "Applicable 18% India GST amount (9% CGST + 9% SGST) in INR"
+        },
+        "grandTotal": {
+          "type": "integer",
+          "description": "Total settled amount in Indian Rupees (INR)"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Selected payment rail"
+        },
+        "paymentReference": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "UTR or gateway verification reference"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["verified"],
+          "description": "Verified settlement status"
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Official SAC 998363 invoice number"
+        },
+        "activatedAtIso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Activation timestamp"
+        },
+        "expiresAtIso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration timestamp"
+        },
+        "expiresAtMs": {
+          "type": "integer",
+          "description": "Expiration epoch milliseconds"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": [
+        "bookingId",
+        "slotKey",
+        "durationKey",
+        "durationDays",
+        "brandName",
+        "advertiserEmail",
+        "bannerUrl",
+        "targetUrl",
+        "baseAmount",
+        "gstAmount",
+        "grandTotal",
+        "paymentMethod",
+        "paymentReference",
+        "paymentStatus",
+        "invoiceNumber",
+        "activatedAtIso",
+        "expiresAtIso",
+        "expiresAtMs",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -120,6 +418,18 @@
     "/feedback/{feedbackId}": {
       "schema": "user_feedback",
       "description": "Reader inquiries and editorial fact-check tips"
+    },
+    "/publisher_security/{vaultId}": {
+      "schema": "publisher_security_vault",
+      "description": "Owner-only cryptographic PIN vault for Publisher Desk"
+    },
+    "/live_ad_slots/{slotId}": {
+      "schema": "live_ad_slot",
+      "description": "Active self-serve commercial banner placements deployed across site slots"
+    },
+    "/ad_bookings/{bookingId}": {
+      "schema": "ad_booking",
+      "description": "Immutable commercial checkout & GST invoice records restricted to Publisher Owner"
     }
   }
 }

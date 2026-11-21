@@ -51,10 +51,11 @@ class GNewsService {
   private cache: Map<string, CacheEntry> = new Map();
   private readonly CACHE_TTL_MS = 60 * 1000; // 60-second cache for real-time updates without 12-hour delay
   private lastFetchError: string | null = null;
-  private isConfiguredState: boolean = false;
+  private isConfiguredState: boolean = true; // 0-delay backend wire proxy is active by default
+  private serverKeyMasked: string | null = null;
 
   constructor() {
-    this.checkServerStatus();
+    void this.checkServerStatus();
   }
 
   /**
@@ -62,13 +63,12 @@ class GNewsService {
    */
   public async checkServerStatus(): Promise<boolean> {
     try {
-      const res = await fetch('/api/gnews/status');
+      const res = await fetch('/api/gnews/status', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (data.configured) {
-          this.isConfiguredState = true;
-          return true;
-        }
+        this.isConfiguredState = Boolean(data.configured ?? true);
+        this.serverKeyMasked = data.keyMasked || null;
+        return this.isConfiguredState;
       }
     } catch {
       // proxy might be booting
@@ -122,7 +122,7 @@ class GNewsService {
           this.lastFetchError = null;
         } else {
           localStorage.removeItem('politics_world_gnews_api_key');
-          this.isConfiguredState = false;
+          void this.checkServerStatus();
         }
       } catch {
         // ignore storage errors
@@ -132,7 +132,7 @@ class GNewsService {
   }
 
   /**
-   * Checks whether a valid GNews API key is configured either on server, client, or storage
+   * Checks whether a valid GNews API key or 0-delay server wire is configured
    */
   public isConfigured(): boolean {
     if (this.isConfiguredState) return true;
@@ -146,7 +146,9 @@ class GNewsService {
   public getStatus(): { configured: boolean; lastError: string | null; keyMasked: string | null } {
     const key = this.getApiKey();
     const configured = this.isConfigured();
-    const keyMasked = configured ? `${key ? key.slice(0, 4) : 'gnew'}••••${key ? key.slice(-3) : 'live'}` : null;
+    const keyMasked = key
+      ? `${key.slice(0, 4)}••••${key.slice(-3)}`
+      : this.serverKeyMasked || (configured ? '0-Delay Live Wire' : null);
     return {
       configured,
       lastError: this.lastFetchError,
@@ -187,6 +189,17 @@ class GNewsService {
     }
   }
 
+  private readonly FALLBACK_IMAGES = [
+    '/src/assets/images/diplomatic_press_briefing_1791859432958.jpg',
+    '/src/assets/images/india_parliament_news_1792118846447.jpg',
+    '/src/assets/images/capitol_night_session_1791859431318.jpg',
+    '/src/assets/images/geopolitical_trade_port_1791859433200.jpg',
+    '/src/assets/images/geneva_trade_summit_1792380631472.jpg',
+    '/src/assets/images/semiconductor_cleanroom_1792002503650.jpg',
+    '/src/assets/images/clean_energy_offshore_1792002484185.jpg',
+    '/src/assets/images/supreme_court_bench_1792002466101.jpg',
+  ];
+
   /**
    * Maps a raw wire article to Politics World LiveWireItem schema
    */
@@ -194,7 +207,7 @@ class GNewsService {
     const agencyName = raw.source?.name || 'Global Live Wire';
     const rawMs = new Date(raw.publishedAt).getTime();
     const publishedTimestamp = Number.isNaN(rawMs) ? Date.now() : Math.min(rawMs, Date.now());
-    const fallbackImage = '/src/assets/images/diplomatic_press_briefing_1791859432958.jpg';
+    const fallbackImage = this.FALLBACK_IMAGES[index % this.FALLBACK_IMAGES.length];
 
     return {
       id: `gnews-${index}-${encodeURIComponent(raw.url.slice(-32))}`,
@@ -266,9 +279,7 @@ class GNewsService {
       if (proxyRes.ok) {
         const data: GNewsApiResponse = await proxyRes.json();
         if (data.articles && Array.isArray(data.articles) && data.articles.length > 0) {
-          const wireItems = data.articles
-            .map((a, i) => this.mapGNewsToWireItem(a, i, lang))
-            .sort((a, b) => b.timestamp - a.timestamp);
+          const wireItems = data.articles.map((a, i) => this.mapGNewsToWireItem(a, i, lang));
           this.cache.set(cacheKey, { timestamp: now, items: wireItems });
           this.lastFetchError = null;
           this.isConfiguredState = true;
@@ -295,7 +306,7 @@ class GNewsService {
       hour: '2-digit',
       minute: '2-digit',
     });
-    const fallbackImage = '/src/assets/images/diplomatic_press_briefing_1791859432958.jpg';
+    const fallbackImage = this.FALLBACK_IMAGES[index % this.FALLBACK_IMAGES.length];
 
     // Smart category classification based on news headlines and keywords
     const textCorpus = `${raw.title} ${raw.description || ''} ${raw.content || ''}`.toLowerCase();
@@ -429,9 +440,7 @@ class GNewsService {
       if (proxyRes.ok) {
         const data: GNewsApiResponse = await proxyRes.json();
         if (data.articles && Array.isArray(data.articles) && data.articles.length > 0) {
-          return data.articles
-            .map((a, i) => this.mapGNewsToArticle(a, i, category, lang))
-            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          return data.articles.map((a, i) => this.mapGNewsToArticle(a, i, category, lang));
         }
       }
     } catch (e) {
@@ -442,7 +451,7 @@ class GNewsService {
   }
 
   /**
-   * Fetches rich composite live feeds combining top headlines and world news, sorted strictly newest-first
+   * Fetches rich composite live feeds combining general, world, and nation news interleaved across agencies
    */
   public async fetchAllLiveFeeds(lang: string = 'en'): Promise<Article[]> {
     const [generalArticles, worldArticles, nationArticles] = await Promise.all([
@@ -451,11 +460,18 @@ class GNewsService {
       this.fetchLiveArticlesForFeed(lang, 'nation', 8).catch(() => []),
     ]);
 
-    const combined = [...generalArticles, ...worldArticles, ...nationArticles];
+    const interleaved: Article[] = [];
+    const maxLen = Math.max(generalArticles.length, worldArticles.length, nationArticles.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (generalArticles[i]) interleaved.push(generalArticles[i]);
+      if (nationArticles[i]) interleaved.push(nationArticles[i]);
+      if (worldArticles[i]) interleaved.push(worldArticles[i]);
+    }
+
     const seenTitles = new Set<string>();
     const seenIds = new Set<string>();
     const unique: Article[] = [];
-    for (const art of combined) {
+    for (const art of interleaved) {
       const titleKey = art.title.trim().toLowerCase();
       if (!seenTitles.has(titleKey) && !seenIds.has(art.id)) {
         seenTitles.add(titleKey);
@@ -463,7 +479,6 @@ class GNewsService {
         unique.push(art);
       }
     }
-    unique.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     return unique.length > 0 ? unique : generalArticles;
   }
 

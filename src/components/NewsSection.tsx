@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Article } from '../data/newsData';
 import { useLanguage } from '../context/LanguageContext';
 import { ShareModal } from './ShareModal';
+import { LiveAdSlotBanner } from './LiveAdSlotBanner';
+import { AdSlotKey } from '../data/adSlotsConfig';
 import {
   Clock,
   Search,
@@ -23,6 +25,7 @@ interface NewsSectionProps {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   onOpenMonetizationHub?: () => void;
+  onBookSlot?: (slotKey: AdSlotKey) => void;
   leadArticleId?: string;
 }
 
@@ -436,6 +439,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
   searchQuery,
   setSearchQuery,
   onOpenMonetizationHub,
+  onBookSlot,
   leadArticleId,
 }) => {
   const { t, currentHourSlot, hourlyLeadArticle, langCode } = useLanguage();
@@ -595,42 +599,16 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
               ))}
             </div>
 
-            {/* Separate Partner Spotlight Banner (strictly below news grid, never interrupting news items) */}
-            <div className="mt-10 rounded-xs border border-amber-500/40 bg-gradient-to-br from-[#0c1630] via-[#091226] to-[#040817] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md relative overflow-hidden group">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-1.5">
-                  <span className="px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 font-bold">
-                    ✦ SPONSORED BRIEF
-                  </span>
-                  <span className="text-slate-500">AdChoices · Partner Dispatch</span>
-                </div>
-                <h4 className="font-serif font-bold text-base sm:text-lg text-white group-hover:text-amber-300 transition-colors leading-snug">
-                  {langCode === 'hi'
-                    ? 'ग्लोबल एनर्जी व सेमीकंडक्टर सप्लाई चेन कॉनक्लेव 2026: डिप्लोमैटिक ब्रीफिंग'
-                    : 'Indo-Pacific Critical Supply Chains & Energy Security Conclave 2026'}
-                </h4>
-                <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
-                  {langCode === 'hi'
-                    ? '1,200 नीति निर्माताओं, राजनयिकों और उद्योग प्रमुखों के लिए विशेष पंजीकरण खुला है।'
-                    : 'Ministerial briefing and executive accreditation now open for institutional policy delegations in Geneva.'}
-                </p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="text-[10px] font-mono text-emerald-400 font-bold hidden sm:inline">
-                  ● VERIFIED PARTNER
-                </span>
-                {onOpenMonetizationHub ? (
-                  <button
-                    onClick={onOpenMonetizationHub}
-                    className="px-4 py-2 rounded-xs text-[11px] font-serif font-bold uppercase tracking-wider text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-xs active:scale-95"
-                  >
-                    {langCode === 'hi' ? 'यहाँ विज्ञापन लगाएं' : 'Advertise Slot'}
-                  </button>
-                ) : (
-                  <span className="text-xs text-amber-400 font-bold">Sponsored Slot</span>
-                )}
-              </div>
-            </div>
+            {/* Live Dynamic Sponsored Editorial Story Slot */}
+            <LiveAdSlotBanner
+              slotKey="sponsored-article"
+              variant="editorial"
+              onBookSlot={(slotKey) => {
+                if (onBookSlot) onBookSlot(slotKey);
+                else onOpenMonetizationHub?.();
+              }}
+              className="mt-10"
+            />
           </>
         )}
 

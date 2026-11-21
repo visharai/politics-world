@@ -94,5 +94,165 @@ service cloud.firestore {
       allow create, update: if isSignedIn() && request.auth.uid == userId;
       allow delete: if false;
     }
+
+    // Publisher Desk Security Vault (Strictly Owner-Only via Verified Google Email)
+    function isPublisherOwner() {
+      return isSignedIn()
+        && request.auth.token.email == 'vrai74918@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isValidPublisherVault(data) {
+      return data.keys().hasAll(['ownerEmail', 'pinHash', 'pinSalt', 'updatedByEmail', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerEmail', 'pinHash', 'pinSalt', 'recoveryHash', 'updatedByEmail', 'failedAttempts', 'lockoutUntil', 'createdAt', 'updatedAt'])
+        && data.ownerEmail == 'vrai74918@gmail.com'
+        && data.updatedByEmail == 'vrai74918@gmail.com'
+        && data.pinHash is string && data.pinHash.size() >= 64 && data.pinHash.size() <= 128 && data.pinHash.matches('^[a-f0-9]+$')
+        && data.pinSalt is string && data.pinSalt.size() >= 16 && data.pinSalt.size() <= 64 && data.pinSalt.matches('^[a-f0-9]+$')
+        && (!('recoveryHash' in data) || (data.recoveryHash is string && data.recoveryHash.size() >= 64 && data.recoveryHash.size() <= 128 && data.recoveryHash.matches('^[a-f0-9]+$')))
+        && (!('failedAttempts' in data) || (data.failedAttempts is int && data.failedAttempts >= 0 && data.failedAttempts <= 20))
+        && (!('lockoutUntil' in data) || (data.lockoutUntil is int && data.lockoutUntil >= 0));
+    }
+
+    match /publisher_security/{vaultId} {
+      allow get: if isValidId(vaultId) && vaultId == 'owner_vault' && isPublisherOwner();
+      allow list: if false;
+      allow create: if isValidId(vaultId)
+                    && vaultId == 'owner_vault'
+                    && isPublisherOwner()
+                    && isValidPublisherVault(incoming())
+                    && incoming().createdAt == request.time
+                    && incoming().updatedAt == request.time;
+      allow update: if isValidId(vaultId)
+                    && vaultId == 'owner_vault'
+                    && isPublisherOwner()
+                    && isValidPublisherVault(incoming())
+                    && incoming().ownerEmail == existing().ownerEmail
+                    && incoming().createdAt == existing().createdAt
+                    && incoming().updatedAt == request.time
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['pinHash', 'pinSalt', 'recoveryHash', 'updatedByEmail', 'failedAttempts', 'lockoutUntil', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // LIVE SELF-SERVE AD SLOTS & IMMUTABLE COMMERCIAL BOOKINGS (SAC 998363)
+    // =========================================================================
+    function isValidSlotKey(slotKey) {
+      return slotKey in ['header', 'in-article', 'sponsored-article', 'multimedia-feature', 'sponsored-wire', 'magazine'];
+    }
+
+    function isValidTargetUrl(url) {
+      return url is string && url.size() >= 8 && url.size() <= 1024 && url.matches('^https?://.+');
+    }
+
+    function isValidBannerUrl(url) {
+      return url is string && url.size() >= 5 && url.size() <= 1024 && url.matches('^(/uploads/|https?://).+');
+    }
+
+    function isValidLiveAdSlot(data) {
+      return data.keys().hasAll([
+          'slotKey', 'brandName', 'bannerUrl', 'targetUrl',
+          'durationKey', 'durationDays', 'bookingId', 'paymentStatus',
+          'status', 'activatedAtIso', 'expiresAtIso', 'expiresAtMs', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'slotKey', 'brandName', 'headline', 'bannerUrl', 'targetUrl',
+          'durationKey', 'durationDays', 'bookingId', 'paymentStatus',
+          'status', 'activatedAtIso', 'expiresAtIso', 'expiresAtMs', 'updatedAt'
+        ])
+        && isValidSlotKey(data.slotKey)
+        && data.brandName is string && data.brandName.size() >= 2 && data.brandName.size() <= 120
+        && (!('headline' in data) || (data.headline is string && data.headline.size() <= 180))
+        && isValidBannerUrl(data.bannerUrl)
+        && isValidTargetUrl(data.targetUrl)
+        && data.durationKey in ['1-week', '1-month', '3-months', '1-year']
+        && data.durationDays is int && data.durationDays >= 1 && data.durationDays <= 366
+        && data.bookingId is string && data.bookingId.size() >= 4 && data.bookingId.size() <= 128
+        && data.paymentStatus == 'verified'
+        && data.status in ['active', 'expired', 'paused']
+        && data.activatedAtIso is string && data.activatedAtIso.size() <= 50
+        && data.expiresAtIso is string && data.expiresAtIso.size() <= 50
+        && data.expiresAtMs is int && data.expiresAtMs > 0;
+    }
+
+    function isValidAdBooking(data) {
+      return data.keys().hasAll([
+          'bookingId', 'slotKey', 'durationKey', 'durationDays',
+          'brandName', 'advertiserEmail', 'bannerUrl', 'targetUrl',
+          'baseAmount', 'gstAmount', 'grandTotal', 'paymentMethod',
+          'paymentReference', 'paymentStatus', 'invoiceNumber',
+          'activatedAtIso', 'expiresAtIso', 'expiresAtMs', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'bookingId', 'slotKey', 'durationKey', 'durationDays',
+          'brandName', 'contactPerson', 'advertiserEmail', 'advertiserPhone',
+          'clientType', 'currency', 'gstin', 'bannerUrl', 'targetUrl', 'headline',
+          'baseAmount', 'gstAmount', 'grandTotal', 'paymentMethod',
+          'paymentReference', 'paymentStatus', 'invoiceNumber',
+          'activatedAtIso', 'expiresAtIso', 'expiresAtMs', 'createdAt'
+        ])
+        && data.bookingId is string && data.bookingId.size() >= 4 && data.bookingId.size() <= 128
+        && isValidSlotKey(data.slotKey)
+        && data.durationKey in ['1-week', '1-month', '3-months', '1-year']
+        && data.durationDays is int && data.durationDays >= 1 && data.durationDays <= 366
+        && data.brandName is string && data.brandName.size() >= 2 && data.brandName.size() <= 120
+        && (!('contactPerson' in data) || (data.contactPerson is string && data.contactPerson.size() <= 120))
+        && isValidEmail(data.advertiserEmail)
+        && (!('advertiserPhone' in data) || (data.advertiserPhone is string && data.advertiserPhone.size() <= 30))
+        && (!('clientType' in data) || (data.clientType in ['b2b', 'b2c']))
+        && (!('currency' in data) || (data.currency == 'INR'))
+        && (!('gstin' in data) || (data.gstin is string && data.gstin.size() <= 30))
+        && isValidBannerUrl(data.bannerUrl)
+        && isValidTargetUrl(data.targetUrl)
+        && (!('headline' in data) || (data.headline is string && data.headline.size() <= 180))
+        && data.baseAmount is int && data.baseAmount >= 1000 && data.baseAmount <= 5000000
+        && data.gstAmount is int && data.gstAmount >= 0 && data.gstAmount <= 1000000
+        && data.grandTotal is int && data.grandTotal >= 1000 && data.grandTotal <= 6000000
+        && data.paymentMethod is string && data.paymentMethod.size() >= 2 && data.paymentMethod.size() <= 60
+        && data.paymentReference is string && data.paymentReference.size() >= 4 && data.paymentReference.size() <= 120
+        && data.paymentStatus == 'verified'
+        && data.invoiceNumber is string && data.invoiceNumber.size() >= 5 && data.invoiceNumber.size() <= 64
+        && data.activatedAtIso is string && data.activatedAtIso.size() <= 50
+        && data.expiresAtIso is string && data.expiresAtIso.size() <= 50
+        && data.expiresAtMs is int && data.expiresAtMs > 0;
+    }
+
+    // Public display slots (zero PII): readable by all site visitors; prevents overwriting unexpired active campaigns unless Publisher Owner
+    match /live_ad_slots/{slotId} {
+      allow get, list: if true;
+      allow create: if isValidId(slotId)
+                    && isValidSlotKey(slotId)
+                    && isValidLiveAdSlot(incoming())
+                    && incoming().slotKey == slotId
+                    && incoming().status == 'active'
+                    && incoming().expiresAtMs > request.time.toMillis()
+                    && incoming().updatedAt == request.time;
+      allow update: if isValidId(slotId)
+                    && isValidSlotKey(slotId)
+                    && isValidLiveAdSlot(incoming())
+                    && incoming().slotKey == slotId
+                    && (
+                      isPublisherOwner()
+                      || existing().status != 'active'
+                      || existing().expiresAtMs <= request.time.toMillis()
+                    )
+                    && incoming().updatedAt == request.time
+                    && incoming().diff(existing()).affectedKeys().hasOnly([
+                      'slotKey', 'brandName', 'headline', 'bannerUrl', 'targetUrl',
+                      'durationKey', 'durationDays', 'bookingId', 'paymentStatus',
+                      'status', 'activatedAtIso', 'expiresAtIso', 'expiresAtMs', 'updatedAt'
+                    ]);
+      allow delete: if isValidId(slotId) && isPublisherOwner();
+    }
+
+    // Commercial checkout & Tax Invoice ledger (contains PII - strictly readable only by Publisher Owner)
+    match /ad_bookings/{bookingId} {
+      allow get, list: if isPublisherOwner();
+      allow create: if isValidId(bookingId)
+                    && isValidAdBooking(incoming())
+                    && incoming().bookingId == bookingId
+                    && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
   }
 }

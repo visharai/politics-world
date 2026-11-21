@@ -263,8 +263,8 @@ class LiveNewsService {
       );
     }
 
-    // Sort latest first
-    return items.sort((a, b) => b.timestamp - a.timestamp);
+    // Preserve multi-agency interleaved order from real-time wire proxy
+    return items;
   }
 
   /**

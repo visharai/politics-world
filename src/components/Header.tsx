@@ -18,19 +18,22 @@ import {
   Lock,
   Trophy,
   Clock,
-  Wallet,
+  RefreshCw,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageSelector } from './LanguageSelector';
-import { getDailyMarketRadar } from '../utils/marketData';
+import { fetchLiveMarketRadar, getDailyMarketRadar } from '../utils/marketData';
 import { NotebookMagazineModal } from './NotebookMagazineModal';
 import { PWAInstallButton } from './PWAInstallButton';
+import { LiveAdSlotBanner } from './LiveAdSlotBanner';
+import { AdSlotKey } from '../data/adSlotsConfig';
 
 interface HeaderProps {
   onOpenSearch: () => void;
   onSubscribeClick: () => void;
   onOpenMonetizationHub?: () => void;
+  onBookSlot?: (slotKey: AdSlotKey) => void;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
 }
@@ -39,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSearch,
   onSubscribeClick,
   onOpenMonetizationHub,
+  onBookSlot,
   activeSection,
   onNavigate,
 }) => {
@@ -67,18 +71,41 @@ export const Header: React.FC<HeaderProps> = ({
     return () => clearInterval(clockTimer);
   }, [langCode]);
 
-  // Dynamic Daily Market Radar (Updates daily based on calendar date + intraday movement)
+  // Live Daily Market Radar (Hydrated from real-time server feed + IST calendar auto-refresh)
   const [marketRadar, setMarketRadar] = useState(() => getDailyMarketRadar());
+  const [isRefreshingRadar, setIsRefreshingRadar] = useState(false);
 
-  // Re-sync market indicators periodically (every 30 seconds)
+  const syncLiveMarketRadar = async (forceRefresh = false) => {
+    if (forceRefresh) setIsRefreshingRadar(true);
+    try {
+      const liveData = await fetchLiveMarketRadar(forceRefresh);
+      setMarketRadar(liveData);
+    } finally {
+      if (forceRefresh) setIsRefreshingRadar(false);
+    }
+  };
+
   useEffect(() => {
-    setMarketRadar(getDailyMarketRadar());
+    void syncLiveMarketRadar(false);
 
     const interval = setInterval(() => {
-      setMarketRadar(getDailyMarketRadar());
-    }, 30000);
+      void syncLiveMarketRadar(false);
+    }, 60 * 1000);
 
-    return () => clearInterval(interval);
+    const handleVisibilityOrFocus = () => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        void syncLiveMarketRadar(false);
+      }
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
   }, []);
 
   // Prevent background scrolling when mobile menu drawer is open
@@ -128,9 +155,9 @@ export const Header: React.FC<HeaderProps> = ({
       icon: <Globe className="w-4 h-4 text-sky-400" />,
     },
     {
-      id: 'leader-rankings',
-      label: t.leaderRankings,
-      icon: <Crown className="w-4 h-4 text-amber-400" />,
+      id: 'audio-digest',
+      label: t.podcasts,
+      icon: <Headphones className="w-4 h-4 text-cyan-400" />,
     },
     {
       id: 'policy-tracker',
@@ -143,9 +170,9 @@ export const Header: React.FC<HeaderProps> = ({
       icon: <FileText className="w-4 h-4 text-teal-400" />,
     },
     {
-      id: 'audio-digest',
-      label: t.podcasts,
-      icon: <Headphones className="w-4 h-4 text-cyan-400" />,
+      id: 'leader-rankings',
+      label: t.leaderRankings,
+      icon: <Crown className="w-4 h-4 text-amber-400" />,
     },
   ];
 
@@ -155,38 +182,35 @@ export const Header: React.FC<HeaderProps> = ({
       {/* TIER 1: TOP GILDED DATELINE & READER UTILITY STRIP                   */}
       {/* ==================================================================== */}
       <div className="border-b border-[#142347] px-3 sm:px-6 py-1.5 sm:py-2 text-xs text-slate-400 relative z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4 font-sans">
-          {/* Left: Full Dateline, Real-Time Clock & Global Bureaus */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink min-w-0">
-            <span className="font-semibold text-slate-100 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-[13px]" title="Live Current Day & Date">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-4 font-sans">
+          {/* Left (Row 1 on Mobile): Full Dateline, Real-Time Clock & Global Bureaus */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 min-w-0 w-full sm:w-auto pb-1 sm:pb-0 border-b border-[#142347]/60 sm:border-b-0">
+            <span className="font-semibold text-slate-100 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-[13px] min-w-0 truncate" title="Live Current Day & Date">
               <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" aria-hidden="true" />
-              {/* Responsive Date: clean compact on mobile & small tablet so Tier 1 stays single-line, full on md+ */}
+              {/* Responsive Date: clean compact on mobile & small tablet, full on md+ */}
               <span className="hidden md:inline">{formattedDate || t.editionDate}</span>
-              <span className="inline md:hidden font-medium">{formattedCompactDate || formattedDate || t.editionDate}</span>
+              <span className="inline md:hidden font-medium truncate">{formattedCompactDate || formattedDate || t.editionDate}</span>
             </span>
-            <span aria-hidden="true" className="text-slate-600">·</span>
-            <span className="inline-flex items-center gap-1 text-emerald-300 font-mono font-semibold text-[11px] sm:text-xs tabular-nums whitespace-nowrap" title="Real-Time Local Clock">
+            <span aria-hidden="true" className="text-slate-600 hidden sm:inline">·</span>
+            <span className="inline-flex items-center gap-1 text-emerald-300 font-mono font-semibold text-[11px] sm:text-xs tabular-nums whitespace-nowrap shrink-0" title="Real-Time Local Clock">
               <Clock className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
               <span>{liveTime}</span>
             </span>
-            <span aria-hidden="true" className="text-slate-600 hidden md:inline">·</span>
-            <span className="hidden lg:inline text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+            <span aria-hidden="true" className="text-slate-600 hidden lg:inline">·</span>
+            <span className="hidden lg:inline text-slate-400 font-mono text-[11px] uppercase tracking-wider whitespace-nowrap">
               Washington · New Delhi · London · Geneva
             </span>
           </div>
 
-          {/* Right: Quick Utilities & Edition Select */}
-          <div className="flex items-center gap-2 sm:gap-3 text-slate-400 shrink-0">
-            {/* Install App Trigger (PWA / Mobile Home Screen) */}
-            <PWAInstallButton variant="header" />
-
+          {/* Right (Row 2 on Mobile): Edition Translation Select & Publisher Desk */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 text-slate-400 shrink-0 w-full sm:w-auto">
             {/* Language Selector Dropdown Widget */}
             <LanguageSelector />
 
             {/* Publisher Wallet & Ad Desk Trigger */}
             <button
               onClick={onOpenMonetizationHub}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full text-white bg-black hover:bg-neutral-900 border border-white/60 hover:border-white text-[10px] sm:text-[11px] font-semibold cursor-pointer shadow-md transition-all active:scale-95 whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-white bg-black hover:bg-neutral-900 border border-white/60 hover:border-white text-[10px] sm:text-[11px] font-semibold cursor-pointer shadow-md transition-all active:scale-95 whitespace-nowrap shrink-0"
               title={
                 langCode === 'hi'
                   ? 'पब्लिशर डेस्क (लॉक्ड) एवं विज्ञापन रेट कार्ड'
@@ -213,25 +237,40 @@ export const Header: React.FC<HeaderProps> = ({
       {/* ==================================================================== */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 border-b border-[#142347]">
         <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4">
-          {/* Left Column: Financial & Geopolitical Market Radar (Desktop Only - Dynamic Daily Updates) */}
-          <div className="hidden lg:flex lg:col-span-3 flex-col justify-center space-y-1.5 text-xs font-mono text-slate-300 border-r border-[#15244b] pr-4">
+          {/* Left Column: Real-Time Daily Market Radar (Desktop) */}
+          <div className="hidden lg:flex lg:col-span-3 flex-col justify-center space-y-1 text-xs font-mono text-slate-300 border-r border-[#15244b] pr-4">
             <div className="flex items-center justify-between text-slate-200 pb-1 border-b border-[#15244b]/80">
               <span className="text-amber-400 font-bold tracking-wider text-xs sm:text-[13px]">MARKET RADAR</span>
-              <span className="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                {marketRadar.dateLabel}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1"
+                  title={marketRadar.statusLabel}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {marketRadar.dateLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void syncLiveMarketRadar(true)}
+                  disabled={isRefreshingRadar}
+                  className="p-0.5 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer disabled:opacity-50"
+                  title={langCode === 'hi' ? 'मार्केट रडार अभी रीफ्रेश करें' : 'Refresh Live Market Radar'}
+                  aria-label="Refresh Market Radar"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isRefreshingRadar ? 'animate-spin text-amber-300' : ''}`} />
+                </button>
+              </div>
             </div>
-            {marketRadar.items.slice(0, 3).map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-xs sm:text-[13px] leading-relaxed">
+            {marketRadar.items.slice(0, 4).map((item) => (
+              <div key={item.name} className="flex items-center justify-between text-[12px] leading-relaxed">
                 <span className="text-slate-300 font-medium">{item.name}</span>
                 <span
                   className={
                     item.isNeutral
-                      ? 'text-slate-100 font-bold'
+                      ? 'text-slate-100 font-bold tabular-nums'
                       : item.isPositive
-                      ? 'text-emerald-400 font-bold'
-                      : 'text-rose-400 font-bold'
+                      ? 'text-emerald-400 font-bold tabular-nums'
+                      : 'text-rose-400 font-bold tabular-nums'
                   }
                 >
                   {item.price} {item.change}
@@ -242,11 +281,11 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Center Column: Iconic Grand Masthead */}
           <div className="col-span-1 md:col-span-12 lg:col-span-6 flex flex-col items-center justify-center text-center min-w-0">
-            <div className="w-full grid grid-cols-[1fr_auto_1fr] md:flex items-center md:justify-center gap-1.5 sm:gap-2 relative">
+            <div className="w-full flex items-center justify-between md:justify-center gap-1.5 sm:gap-3 relative">
               {/* Mobile Hamburger Trigger (Left on mobile) */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden justify-self-start px-2 py-1.5 xs:p-2 rounded-sm bg-[#0a1532] border border-[#1b2f5d] text-slate-200 hover:text-white hover:bg-[#12234e] transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                className="md:hidden px-2 py-1.5 rounded-sm bg-[#0a1532] border border-[#1b2f5d] text-slate-200 hover:text-white hover:bg-[#12234e] transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0"
                 aria-label="Open mobile navigation menu"
                 aria-expanded={isMobileMenuOpen}
               >
@@ -261,20 +300,20 @@ export const Header: React.FC<HeaderProps> = ({
                   e.preventDefault();
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="group inline-flex flex-col items-center justify-self-center transition-colors select-none py-0.5 min-w-0 max-w-full"
+                className="group flex-1 md:flex-initial inline-flex flex-col items-center justify-center transition-colors select-none py-0.5 min-w-0 max-w-full"
               >
-                <h1 className="brand-title text-base xs:text-xl sm:text-4xl lg:text-[2.25rem] xl:text-[2.85rem] font-serif font-black tracking-[0.06em] xs:tracking-[0.12em] sm:tracking-[0.18em] lg:tracking-[0.14em] xl:tracking-[0.18em] uppercase text-slate-100 group-hover:text-amber-300 transition-colors leading-none whitespace-nowrap">
+                <h1 className="brand-title text-[15px] xs:text-lg sm:text-3xl lg:text-[1.85rem] xl:text-[2.4rem] font-serif font-black tracking-[0.05em] xs:tracking-[0.1em] sm:tracking-[0.16em] lg:tracking-[0.11em] xl:tracking-[0.15em] uppercase text-slate-100 group-hover:text-amber-300 transition-colors leading-none whitespace-nowrap truncate max-w-full">
                   POLITICS WORLD
                 </h1>
                 <img
                   src="/images/politics_world_logo.png"
                   alt="Politics World Official Logo"
-                  className="w-[150px] xs:w-[205px] sm:w-[340px] lg:w-[350px] xl:w-[410px] h-auto object-contain block -mt-0.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.65)]"
+                  className="w-[132px] xs:w-[178px] sm:w-[290px] lg:w-[290px] xl:w-[360px] h-auto object-contain block -mt-0.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.65)]"
                 />
               </a>
 
-              {/* Top-Right Mobile Install CTA (immediately visible at top of mobile screen) */}
-              <div className="md:hidden justify-self-end shrink-0">
+              {/* Single Install App CTA directly beside Politics World */}
+              <div className="shrink-0 flex items-center">
                 <PWAInstallButton variant="compact" />
               </div>
             </div>
@@ -300,95 +339,78 @@ export const Header: React.FC<HeaderProps> = ({
               Veritas et Aequitas · Independent Global Journal of Record · Founded MMXXIV
             </p>
 
-            {/* Mobile / Tablet Quick Action Strip: Install App + Sponsored Notebook Magazine */}
-            <div className="lg:hidden w-full max-w-2xl mx-auto mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2 items-stretch">
-              <PWAInstallButton variant="banner" />
-
-              <div
-                onClick={() => setIsMagazineModalOpen(true)}
-                className="w-full h-full p-1.5 sm:p-2 bg-gradient-to-r from-[#071333] via-[#0b1e4f] to-[#071333] border border-amber-500/50 rounded-xs flex items-center justify-between gap-2 cursor-pointer shadow-sm active:scale-[0.99] transition-all"
-                title="Notebook Magazine Advertisement"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-9 sm:w-9 sm:h-10 shrink-0 rounded-xs overflow-hidden border border-amber-400/60 shadow-xs bg-[#040816]">
-                    <img
-                      src="/src/assets/images/notebook_magazine_cover_1794245314092.jpg"
-                      alt="Notebook Magazine"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="text-left min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-serif font-black text-amber-300 truncate">NOTEBOOK MAGAZINE</span>
-                      <span className="text-[8px] px-1 bg-amber-400/25 text-amber-300 font-mono rounded-xs font-bold border border-amber-400/30 shrink-0">AD</span>
-                    </div>
-                    <div className="text-[10px] text-slate-200 truncate font-sans">
-                      {langCode === 'hi' ? 'त्रैमासिक कूटनीतिक विशेषांक' : 'Quarterly Review · Issue 47'}
-                    </div>
+            {/* Mobile / Tablet Compact Live Market Radar + Masthead Ad Slot */}
+            <div className="lg:hidden w-full max-w-md mx-auto mt-2.5 space-y-2">
+              <div className="rounded-md bg-[#050c1f] border border-[#162750] overflow-hidden font-mono">
+                <div className="px-2.5 py-1 border-b border-[#142347] flex items-center justify-between text-[9px] uppercase tracking-wider">
+                  <span className="text-amber-400 font-bold">MARKET RADAR</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          marketRadar.isLiveFeed ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                        }`}
+                      />
+                      <span>
+                        {marketRadar.isLiveFeed ? `LIVE · ${marketRadar.dateLabel}` : marketRadar.dateLabel}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void syncLiveMarketRadar(true)}
+                      disabled={isRefreshingRadar}
+                      className="p-0.5 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer disabled:opacity-50"
+                      aria-label="Refresh Mobile Market Radar"
+                    >
+                      <RefreshCw className={`w-2.5 h-2.5 ${isRefreshingRadar ? 'animate-spin text-amber-300' : ''}`} />
+                    </button>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-[10px] font-bold rounded-xs shrink-0 whitespace-nowrap shadow-xs">
-                  {langCode === 'hi' ? 'देखें ↗' : 'View Ad ↗'}
-                </span>
+                <div className="px-1.5 py-1.5 grid grid-cols-4 divide-x divide-[#162750]">
+                  {marketRadar.items.slice(0, 4).map((item) => (
+                    <div
+                      key={item.name}
+                      className="flex flex-col items-center justify-center text-center px-1 min-w-0"
+                    >
+                      <span className="text-[8.5px] sm:text-[10px] text-slate-400 font-semibold tracking-tight truncate w-full leading-tight">
+                        {item.name}
+                      </span>
+                      <span
+                        className={`text-[11px] sm:text-xs font-bold tabular-nums leading-snug truncate max-w-full ${
+                          item.isNeutral
+                            ? 'text-slate-100'
+                            : item.isPositive
+                            ? 'text-emerald-400'
+                            : 'text-rose-400'
+                        }`}
+                      >
+                        {item.price}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
+              <LiveAdSlotBanner
+                slotKey="magazine"
+                variant="compact"
+                onBookSlot={(slotKey) => {
+                  if (onBookSlot) onBookSlot(slotKey);
+                  else onOpenMonetizationHub?.();
+                }}
+              />
             </div>
           </div>
 
-          {/* Right Column: Sponsored Notebook Magazine Ad Box (Horizontal Broadsheet Card) */}
-          <div className="hidden lg:flex lg:col-span-3 flex-col justify-center border-l border-[#15244b] pl-4">
-            <div
-              onClick={() => setIsMagazineModalOpen(true)}
-              className="group relative w-full bg-gradient-to-br from-[#060f26] via-[#0a1840] to-[#0e2156] hover:to-[#152d72] border border-amber-500/45 hover:border-amber-400 rounded-sm p-2.5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-[0_8px_24px_rgba(212,175,55,0.22)] active:scale-[0.99]"
-              title={langCode === 'hi' ? 'प्रायोजित विज्ञापन: नोटबुक पत्रिका (क्लिक करके विवरण देखें)' : 'Sponsored Advertisement: Notebook Magazine Quarterly Review (Click for details)'}
-            >
-              {/* Sponsored Top Label Bar */}
-              <div className="flex items-center justify-between gap-1 text-[9px] font-mono uppercase tracking-wider text-amber-400/90 pb-1.5 mb-2 border-b border-[#1c3268]">
-                <span className="flex items-center gap-1 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                  <span>{langCode === 'hi' ? 'विज्ञापन' : 'SPONSORED'}</span>
-                </span>
-                <span className="text-[8px] px-1.5 py-0.2 bg-amber-950/80 text-amber-300 border border-amber-500/40 rounded-xs font-semibold">
-                  AD #01
-                </span>
-              </div>
-
-              {/* Magazine Thumbnail + Text Details */}
-              <div className="flex items-center gap-2.5">
-                <div className="w-14 h-[74px] shrink-0 rounded-xs overflow-hidden border border-amber-400/70 shadow-md group-hover:scale-105 transition-transform duration-300 bg-[#050b1a]">
-                  <img
-                    src="/src/assets/images/notebook_magazine_cover_1794245314092.jpg"
-                    alt="Notebook Magazine Official Cover"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-0 text-left space-y-1">
-                  <div className="flex items-center gap-1">
-                    <span className="text-amber-300 font-serif font-black text-xs tracking-wider uppercase group-hover:text-amber-200 truncate">
-                      NOTEBOOK
-                    </span>
-                    <span className="text-slate-950 text-[8px] font-bold font-sans px-1 py-0.2 bg-amber-400 rounded-xs shrink-0">
-                      MAG
-                    </span>
-                  </div>
-
-                  <p className="text-[10px] text-slate-200 font-serif leading-tight line-clamp-1">
-                    {langCode === 'hi' ? 'त्रैमासिक नीति विशेषांक' : 'Quarterly Policy Review'}
-                  </p>
-
-                  <p className="text-[9px] text-amber-200/85 font-mono truncate">
-                    {langCode === 'hi' ? 'प्रिंट + डिजिटल · अंक 47' : 'Winter 2026 · Issue 47'}
-                  </p>
-
-                  <div className="pt-0.5">
-                    <span className="w-full inline-flex items-center justify-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 group-hover:from-amber-300 group-hover:to-amber-400 text-slate-950 font-bold text-[10px] uppercase tracking-wider rounded-xs transition-all shadow-xs whitespace-nowrap">
-                      <span>{langCode === 'hi' ? 'देखें / बुक करें' : 'Order / Book Ad'}</span>
-                      <span className="text-slate-900 group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Right Column: Live Masthead Ad Slot (Desktop Broadsheet Card) */}
+          <div id="magazine-masthead-slot" className="hidden lg:flex lg:col-span-3 flex-col justify-center border-l border-[#15244b] pl-4">
+            <LiveAdSlotBanner
+              slotKey="magazine"
+              variant="compact"
+              onBookSlot={(slotKey) => {
+                if (onBookSlot) onBookSlot(slotKey);
+                else onOpenMonetizationHub?.();
+              }}
+            />
           </div>
         </div>
       </div>
@@ -439,14 +461,14 @@ export const Header: React.FC<HeaderProps> = ({
           <span aria-hidden="true" className="text-slate-700">·</span>
 
           <button
-            onClick={() => onNavigate('leader-rankings')}
+            onClick={() => onNavigate('audio-digest')}
             className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer pb-0.5 ${
-              activeSection === 'leader-rankings'
+              activeSection === 'audio-digest'
                 ? 'text-amber-300 font-black border-b-2 border-amber-400'
                 : 'text-slate-300 hover:text-white hover:border-b-2 hover:border-amber-400/50'
             }`}
           >
-            {t.leaderRankings}
+            {t.podcasts}
           </button>
 
           <span aria-hidden="true" className="text-slate-700">·</span>
@@ -478,14 +500,14 @@ export const Header: React.FC<HeaderProps> = ({
           <span aria-hidden="true" className="text-slate-700">·</span>
 
           <button
-            onClick={() => onNavigate('audio-digest')}
+            onClick={() => onNavigate('leader-rankings')}
             className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer pb-0.5 ${
-              activeSection === 'audio-digest'
+              activeSection === 'leader-rankings'
                 ? 'text-amber-300 font-black border-b-2 border-amber-400'
                 : 'text-slate-300 hover:text-white hover:border-b-2 hover:border-amber-400/50'
             }`}
           >
-            {t.podcasts}
+            {t.leaderRankings}
           </button>
         </div>
       </nav>
@@ -614,7 +636,7 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               })}
 
-              {/* Digital Wallet & Ledger Link in mobile menu */}
+              {/* India Publisher & Ad Desk Link in mobile menu */}
               {onOpenMonetizationHub && (
                 <button
                   onClick={() => {
@@ -624,43 +646,27 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full p-2.5 rounded-sm flex items-center justify-between text-left text-xs text-white bg-black hover:bg-neutral-900 transition-colors cursor-pointer border border-white/50"
                 >
                   <div className="flex items-center gap-3">
-                    <Wallet className="w-4 h-4 text-amber-300 shrink-0" />
+                    <Globe className="w-4 h-4 text-amber-300 shrink-0" />
                     <span className="font-bold font-mono">
-                      {langCode === 'hi' ? 'डिजिटल वॉलेट व लेजर (Wallet & Payouts)' : 'Digital Wallet & Ledger (Payouts)'}
+                      {langCode === 'hi' ? 'पब्लिशर एवं विज्ञापन डेस्क (भारत)' : 'India Publisher & Ad Desk'}
                     </span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-white" />
                 </button>
               )}
 
-              {/* Install Mobile App CTA inside Mobile Drawer */}
-              <PWAInstallButton variant="drawer" />
-
-              {/* Notebook Magazine Sponsored Slot in mobile drawer */}
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsMagazineModalOpen(true);
-                }}
-                className="w-full p-2.5 rounded-sm flex items-center justify-between text-left text-xs text-amber-200 bg-gradient-to-r from-[#07122e] to-[#0a1a42] hover:to-[#0f245a] transition-colors cursor-pointer border border-amber-400/40"
-              >
-                <div className="flex items-center gap-2.5">
-                  <img
-                    src="/src/assets/images/notebook_magazine_cover_1794245314092.jpg"
-                    alt="Notebook Magazine"
-                    className="w-7 h-9 object-cover rounded-xs border border-amber-400/50 shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-amber-300 font-serif">NOTEBOOK MAGAZINE</div>
-                    <div className="text-[10px] text-slate-300 font-sans">
-                      {langCode === 'hi' ? 'विशेष पत्रिका · प्रिंट एवं डिजिटल' : 'Quarterly Issue 47 · Print & Digital'}
-                    </div>
-                  </div>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-xs bg-amber-500/20 text-amber-300 font-mono shrink-0">
-                  {langCode === 'hi' ? 'विज्ञापन' : 'SPONSORED'}
-                </span>
-              </button>
+              {/* Live Magazine Ad Slot in mobile drawer */}
+              <div onClick={() => setIsMobileMenuOpen(false)}>
+                <LiveAdSlotBanner
+                  slotKey="magazine"
+                  variant="compact"
+                  onBookSlot={(slotKey) => {
+                    setIsMobileMenuOpen(false);
+                    if (onBookSlot) onBookSlot(slotKey);
+                    else onOpenMonetizationHub?.();
+                  }}
+                />
+              </div>
             </div>
 
             {/* Drawer Bottom Action: Dateline & Bureau info */}
